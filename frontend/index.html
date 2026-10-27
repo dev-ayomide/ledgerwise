@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ledgerwise</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo" aria-hidden="true">L</span> Ledgerwise <span class="tag">Why does the money not add up?</span></div>
+  <div class="badges" id="badges" aria-label="System status"></div>
+</header>
+<nav class="tabs" role="tablist">
+  <button role="tab" id="tab-dashboard" data-view="dashboard" aria-selected="true">Dashboard</button>
+  <button role="tab" id="tab-investigation" data-view="investigation" aria-selected="false">Investigation</button>
+  <button role="tab" id="tab-report" data-view="report" aria-selected="false" disabled>Report</button>
+</nav>
+<main>
+  <section id="view-dashboard" class="view"></section>
+  <section id="view-investigation" class="view" hidden>
+    <div class="sources" id="sources" aria-label="Sources touched"></div>
+    <div class="split">
+      <ol class="timeline" id="timeline" aria-live="polite"></ol>
+      <aside class="evidence" id="evidence" aria-label="Evidence panel">
+        <h2>Evidence</h2>
+        <p class="muted" id="evidence-empty">Queries and their rows appear here. Click any evidence id to inspect it.</p>
+        <div id="evidence-body"></div>
+      </aside>
+    </div>
+  </section>
+  <section id="view-report" class="view" hidden></section>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>

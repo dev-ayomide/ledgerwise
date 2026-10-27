@@ -1,0 +1,420 @@
+{
+  "run_at": "2026-10-27T18:22:58+00:00",
+  "engine": "local-duckdb",
+  "scenarios": 21,
+  "score": 1995,
+  "max_score": 2100,
+  "seconds": 0.6,
+  "results": [
+    {
+      "scenario_id": "unexplained-header-2026-10-13",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": false,
+      "score": 100,
+      "gap_kobo": 0,
+      "expected_gap_kobo": 0,
+      "found_codes": [
+        "header_discrepancy"
+      ],
+      "expected_codes": [],
+      "unexplained_kobo": 5000000,
+      "expected_unexplained_kobo": 5000000
+    },
+    {
+      "scenario_id": "single-duplicate-2026-10-14",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": false,
+      "score": 100,
+      "gap_kobo": 25000000,
+      "expected_gap_kobo": 25000000,
+      "found_codes": [
+        "duplicate_webhook"
+      ],
+      "expected_codes": [
+        "duplicate_webhook"
+      ],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "single-stuck-pending-2026-10-15",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": false,
+      "score": 100,
+      "gap_kobo": -12000000,
+      "expected_gap_kobo": -12000000,
+      "found_codes": [
+        "stuck_pending"
+      ],
+      "expected_codes": [
+        "stuck_pending"
+      ],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "single-fee-mismatch-2026-10-16",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": false,
+      "score": 100,
+      "gap_kobo": 4000000,
+      "expected_gap_kobo": 4000000,
+      "found_codes": [
+        "fee_mismatch"
+      ],
+      "expected_codes": [
+        "fee_mismatch"
+      ],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "single-cutoff-2026-10-17",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": false,
+      "score": 100,
+      "gap_kobo": 15000000,
+      "expected_gap_kobo": 15000000,
+      "found_codes": [
+        "cutoff_timezone"
+      ],
+      "expected_codes": [
+        "cutoff_timezone"
+      ],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "single-partial-2026-10-19",
+      "gap_correct": true,
+      "causes_found": false,
+      "amounts_correct": true,
+      "unexplained_correct": false,
+      "held_out": false,
+      "score": 65,
+      "gap_kobo": 30000000,
+      "expected_gap_kobo": 30000000,
+      "found_codes": [],
+      "expected_codes": [
+        "partial_settlement"
+      ],
+      "unexplained_kobo": 30000000,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "red-herring-2026-10-20",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": false,
+      "score": 100,
+      "gap_kobo": 0,
+      "expected_gap_kobo": 0,
+      "found_codes": [],
+      "expected_codes": [],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "demo-2026-10-21",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": false,
+      "score": 100,
+      "gap_kobo": 420000000,
+      "expected_gap_kobo": 420000000,
+      "found_codes": [
+        "cutoff_timezone",
+        "duplicate_webhook",
+        "fee_mismatch",
+        "partial_settlement"
+      ],
+      "expected_codes": [
+        "cutoff_timezone",
+        "duplicate_webhook",
+        "fee_mismatch",
+        "partial_settlement"
+      ],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "combo-two-cuto-dupl-2026-10-01",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": true,
+      "score": 100,
+      "gap_kobo": 85000000,
+      "expected_gap_kobo": 85000000,
+      "found_codes": [
+        "cutoff_timezone",
+        "duplicate_webhook"
+      ],
+      "expected_codes": [
+        "cutoff_timezone",
+        "duplicate_webhook"
+      ],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "combo-two-part-fee_-2026-10-03",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": false,
+      "score": 100,
+      "gap_kobo": 61000000,
+      "expected_gap_kobo": 61000000,
+      "found_codes": [
+        "fee_mismatch",
+        "partial_settlement"
+      ],
+      "expected_codes": [
+        "fee_mismatch",
+        "partial_settlement"
+      ],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "combo-two-part-cuto-2026-10-05",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": true,
+      "score": 100,
+      "gap_kobo": 37000000,
+      "expected_gap_kobo": 37000000,
+      "found_codes": [
+        "cutoff_timezone",
+        "partial_settlement"
+      ],
+      "expected_codes": [
+        "cutoff_timezone",
+        "partial_settlement"
+      ],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "combo-two-cuto-fee_-2026-10-07",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": false,
+      "score": 100,
+      "gap_kobo": 40000000,
+      "expected_gap_kobo": 40000000,
+      "found_codes": [
+        "cutoff_timezone",
+        "fee_mismatch"
+      ],
+      "expected_codes": [
+        "cutoff_timezone",
+        "fee_mismatch"
+      ],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "combo-three-part-cuto-dupl-2026-10-09",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": false,
+      "score": 100,
+      "gap_kobo": 148000000,
+      "expected_gap_kobo": 148000000,
+      "found_codes": [
+        "cutoff_timezone",
+        "duplicate_webhook",
+        "partial_settlement"
+      ],
+      "expected_codes": [
+        "cutoff_timezone",
+        "duplicate_webhook",
+        "partial_settlement"
+      ],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "combo-three-cuto-dupl-fee_-2026-10-11",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": true,
+      "score": 100,
+      "gap_kobo": 130000000,
+      "expected_gap_kobo": 130000000,
+      "found_codes": [
+        "cutoff_timezone",
+        "duplicate_webhook",
+        "fee_mismatch"
+      ],
+      "expected_codes": [
+        "cutoff_timezone",
+        "duplicate_webhook",
+        "fee_mismatch"
+      ],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "combo-two-part-dupl-2026-10-23",
+      "gap_correct": true,
+      "causes_found": false,
+      "amounts_correct": true,
+      "unexplained_correct": false,
+      "held_out": false,
+      "score": 65,
+      "gap_kobo": 58000000,
+      "expected_gap_kobo": 58000000,
+      "found_codes": [
+        "duplicate_webhook"
+      ],
+      "expected_codes": [
+        "duplicate_webhook",
+        "partial_settlement"
+      ],
+      "unexplained_kobo": 40000000,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "combo-two-dupl-fee_-2026-10-24",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": false,
+      "score": 100,
+      "gap_kobo": 69000000,
+      "expected_gap_kobo": 69000000,
+      "found_codes": [
+        "duplicate_webhook",
+        "fee_mismatch"
+      ],
+      "expected_codes": [
+        "duplicate_webhook",
+        "fee_mismatch"
+      ],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "combo-three-part-dupl-fee_-2026-10-25",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": false,
+      "score": 100,
+      "gap_kobo": 85000000,
+      "expected_gap_kobo": 85000000,
+      "found_codes": [
+        "duplicate_webhook",
+        "fee_mismatch",
+        "partial_settlement"
+      ],
+      "expected_codes": [
+        "duplicate_webhook",
+        "fee_mismatch",
+        "partial_settlement"
+      ],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "combo-two-part-unat-2026-10-29",
+      "gap_correct": true,
+      "causes_found": false,
+      "amounts_correct": true,
+      "unexplained_correct": false,
+      "held_out": false,
+      "score": 65,
+      "gap_kobo": 42000000,
+      "expected_gap_kobo": 42000000,
+      "found_codes": [],
+      "expected_codes": [
+        "partial_settlement"
+      ],
+      "unexplained_kobo": 42000000,
+      "expected_unexplained_kobo": 12000000
+    },
+    {
+      "scenario_id": "combo-two-dupl-unat-2026-10-28",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": true,
+      "score": 100,
+      "gap_kobo": 30000000,
+      "expected_gap_kobo": 30000000,
+      "found_codes": [
+        "duplicate_webhook"
+      ],
+      "expected_codes": [
+        "duplicate_webhook"
+      ],
+      "unexplained_kobo": 10000000,
+      "expected_unexplained_kobo": 10000000
+    },
+    {
+      "scenario_id": "red-herring-2026-10-26",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": false,
+      "score": 100,
+      "gap_kobo": 0,
+      "expected_gap_kobo": 0,
+      "found_codes": [],
+      "expected_codes": [],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    },
+    {
+      "scenario_id": "red-herring-2026-10-27",
+      "gap_correct": true,
+      "causes_found": true,
+      "amounts_correct": true,
+      "unexplained_correct": true,
+      "held_out": true,
+      "score": 100,
+      "gap_kobo": 0,
+      "expected_gap_kobo": 0,
+      "found_codes": [],
+      "expected_codes": [],
+      "unexplained_kobo": 0,
+      "expected_unexplained_kobo": 0
+    }
+  ]
+}

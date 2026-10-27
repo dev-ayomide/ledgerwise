@@ -1,0 +1,6 @@
+---
+description: Ledgerwise project rules
+alwaysApply: true
+---
+
+Read CLAUDE.md in the repo root before writing code. Hard rules: read-only SQL through the guard, integer kobo for money, every claim cites evidence, no invented sponsor facts, honest numbers in docs. Update docs/PROGRESS.md at the end of a session.

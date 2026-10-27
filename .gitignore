@@ -1,0 +1,11 @@
+.env
+.env.local
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+data/generated/
+.DS_Store
+*.egg-info/
+data/investigations/*.actions.json
+.claude/

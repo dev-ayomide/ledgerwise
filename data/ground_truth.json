@@ -1,0 +1,979 @@
+{
+  "currency": "NGN",
+  "generator_seed": 20261022,
+  "minor_unit": "kobo",
+  "scenarios": [
+    {
+      "business_date": "2026-10-13",
+      "faults": [],
+      "header_gap_kobo": 5000000,
+      "id": "unexplained-header-2026-10-13",
+      "line_gap_kobo": 0,
+      "primary_keys": {
+        "bank.settlement_batches": [
+          "batch_2026-10-13"
+        ]
+      },
+      "question": "The 13 October 2026 batch header is NGN 50,000 below the settlement lines. What explains it?",
+      "red_herring": false,
+      "root_causes": [],
+      "unexplained_kobo": 5000000
+    },
+    {
+      "business_date": "2026-10-14",
+      "faults": [
+        "duplicate_webhook"
+      ],
+      "id": "single-duplicate-2026-10-14",
+      "line_gap_kobo": 25000000,
+      "question": "Why is the 14 October 2026 settlement short?",
+      "root_causes": [
+        {
+          "amount_kobo": 25000000,
+          "code": "duplicate_webhook",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261014_9301"
+            ],
+            "events.webhook_events": [
+              "wh_20261014_9301_a1",
+              "wh_20261014_9302_a2"
+            ],
+            "processor.ledger_entries": [
+              "led_20261014_9301_net",
+              "led_20261014_9301_fee",
+              "led_20261014_9302_net",
+              "led_20261014_9302_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261014_9301",
+              "txn_20261014_9302"
+            ]
+          },
+          "summary": "Two successful processor rows share one reference because a webhook was applied twice. The bank paid the transfer once."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-15",
+      "faults": [
+        "stuck_pending"
+      ],
+      "id": "single-stuck-pending-2026-10-15",
+      "line_gap_kobo": -12000000,
+      "question": "Why did the bank settle a 15 October 2026 payment our ledger still shows as pending?",
+      "root_causes": [
+        {
+          "amount_kobo": 12000000,
+          "code": "stuck_pending",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261015_9401"
+            ],
+            "events.webhook_events": [
+              "wh_20261015_9401_a3"
+            ],
+            "processor.transactions": [
+              "txn_20261015_9401"
+            ]
+          },
+          "summary": "The processor left the transaction pending after HTTP 504 webhook attempts. The bank line paid it. There is no ledger entry."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-16",
+      "faults": [
+        "fee_mismatch"
+      ],
+      "id": "single-fee-mismatch-2026-10-16",
+      "line_gap_kobo": 4000000,
+      "question": "Why is the 16 October 2026 settlement short for Ironside Pharmacy?",
+      "root_causes": [
+        {
+          "amount_kobo": 4000000,
+          "code": "fee_mismatch",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261016_9100",
+              "line_20261016_9101",
+              "line_20261016_9102",
+              "line_20261016_9103"
+            ],
+            "processor.transactions": [
+              "txn_20261016_9100",
+              "txn_20261016_9101",
+              "txn_20261016_9102",
+              "txn_20261016_9103"
+            ]
+          },
+          "summary": "Ironside Pharmacy was priced at 150 bps in the processor and 250 bps on the bank lines. Each line is short by 1,000,000 kobo."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-17",
+      "faults": [
+        "cutoff_timezone"
+      ],
+      "id": "single-cutoff-2026-10-17",
+      "line_gap_kobo": 15000000,
+      "question": "Why did 17 October 2026 close short even though those transfers succeeded?",
+      "root_causes": [
+        {
+          "amount_kobo": 15000000,
+          "code": "cutoff_timezone",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261018_9201",
+              "line_20261018_9202"
+            ],
+            "processor.transactions": [
+              "txn_20261017_9201",
+              "txn_20261017_9202"
+            ]
+          },
+          "summary": "These successes fall inside the West Africa Time business day but after the 20:00 UTC bank cutoff, so the lines carry the next value date."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-19",
+      "faults": [
+        "partial_settlement"
+      ],
+      "id": "single-partial-2026-10-19",
+      "line_gap_kobo": 30000000,
+      "question": "Which 19 October 2026 success never reached the bank file?",
+      "root_causes": [
+        {
+          "amount_kobo": 30000000,
+          "code": "partial_settlement",
+          "primary_keys": {
+            "processor.ledger_entries": [
+              "led_20261019_9001_net",
+              "led_20261019_9001_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261019_9001"
+            ],
+            "support.tickets": [
+              "tkt_20261019_9001"
+            ]
+          },
+          "summary": "One successful ledger credit has no bank settlement line."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-20",
+      "faults": [],
+      "id": "red-herring-2026-10-20",
+      "line_gap_kobo": 0,
+      "question": "The 20 October 2026 narrations mention reversals and chargebacks. Is money missing?",
+      "red_herring": true,
+      "root_causes": [],
+      "unexplained_kobo": 0
+    },
+    {
+      "as_of": "2026-10-22",
+      "business_date": "2026-10-21",
+      "display_gap": "NGN 4,200,000",
+      "faults": [
+        "partial_settlement",
+        "cutoff_timezone",
+        "duplicate_webhook",
+        "fee_mismatch"
+      ],
+      "id": "demo-2026-10-21",
+      "line_gap_kobo": 420000000,
+      "question": "Why is NGN 4.2M missing from yesterday's settlement?",
+      "red_herring": false,
+      "root_causes": [
+        {
+          "amount_kobo": 180000000,
+          "code": "partial_settlement",
+          "primary_keys": {
+            "processor.ledger_entries": [
+              "led_20261021_9001_net",
+              "led_20261021_9001_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261021_9001"
+            ],
+            "support.tickets": [
+              "tkt_20261021_9001"
+            ]
+          },
+          "summary": "One successful ledger credit has no bank settlement line."
+        },
+        {
+          "amount_kobo": 150000000,
+          "code": "cutoff_timezone",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261022_9201",
+              "line_20261022_9202",
+              "line_20261022_9203"
+            ],
+            "processor.transactions": [
+              "txn_20261021_9201",
+              "txn_20261021_9202",
+              "txn_20261021_9203"
+            ]
+          },
+          "summary": "Successes inside the West Africa Time day but after the 20:00 UTC bank cutoff. The lines are on the next value date."
+        },
+        {
+          "amount_kobo": 70000000,
+          "code": "duplicate_webhook",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261021_9301"
+            ],
+            "events.webhook_events": [
+              "wh_20261021_9301_a1",
+              "wh_20261021_9302_a2"
+            ],
+            "processor.ledger_entries": [
+              "led_20261021_9301_net",
+              "led_20261021_9301_fee",
+              "led_20261021_9302_net",
+              "led_20261021_9302_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261021_9301",
+              "txn_20261021_9302"
+            ]
+          },
+          "summary": "A retried webhook created a second success and a second ledger credit. The bank paid once."
+        },
+        {
+          "amount_kobo": 20000000,
+          "code": "fee_mismatch",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261021_9100",
+              "line_20261021_9101",
+              "line_20261021_9102",
+              "line_20261021_9103",
+              "line_20261021_9104",
+              "line_20261021_9105",
+              "line_20261021_9106",
+              "line_20261021_9107",
+              "line_20261021_9108",
+              "line_20261021_9109",
+              "line_20261021_9110",
+              "line_20261021_9111",
+              "line_20261021_9112",
+              "line_20261021_9113",
+              "line_20261021_9114",
+              "line_20261021_9115",
+              "line_20261021_9116",
+              "line_20261021_9117",
+              "line_20261021_9118",
+              "line_20261021_9119"
+            ],
+            "processor.transactions": [
+              "txn_20261021_9100",
+              "txn_20261021_9101",
+              "txn_20261021_9102",
+              "txn_20261021_9103",
+              "txn_20261021_9104",
+              "txn_20261021_9105",
+              "txn_20261021_9106",
+              "txn_20261021_9107",
+              "txn_20261021_9108",
+              "txn_20261021_9109",
+              "txn_20261021_9110",
+              "txn_20261021_9111",
+              "txn_20261021_9112",
+              "txn_20261021_9113",
+              "txn_20261021_9114",
+              "txn_20261021_9115",
+              "txn_20261021_9116",
+              "txn_20261021_9117",
+              "txn_20261021_9118",
+              "txn_20261021_9119"
+            ]
+          },
+          "summary": "Processor fee is 150 bps and the bank deducted 250 bps. Each of these lines is short by 1,000,000 kobo."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-01",
+      "faults": [
+        "cutoff_timezone",
+        "duplicate_webhook"
+      ],
+      "held_out": true,
+      "id": "combo-two-cuto-dupl-2026-10-01",
+      "line_gap_kobo": 85000000,
+      "question": "Why is the 1 October 2026 settlement short?",
+      "red_herring": false,
+      "root_causes": [
+        {
+          "amount_kobo": 50000000,
+          "code": "cutoff_timezone",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261002_9201",
+              "line_20261002_9202"
+            ],
+            "processor.transactions": [
+              "txn_20261001_9201",
+              "txn_20261001_9202"
+            ]
+          },
+          "summary": "Successes inside the West Africa Time day but after the 20:00 UTC bank cutoff. The lines are on the next value date."
+        },
+        {
+          "amount_kobo": 35000000,
+          "code": "duplicate_webhook",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261001_9301"
+            ],
+            "events.webhook_events": [
+              "wh_20261001_9301_a1",
+              "wh_20261001_9302_a2"
+            ],
+            "processor.ledger_entries": [
+              "led_20261001_9301_net",
+              "led_20261001_9301_fee",
+              "led_20261001_9302_net",
+              "led_20261001_9302_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261001_9301",
+              "txn_20261001_9302"
+            ]
+          },
+          "summary": "A retried webhook created a second success and a second ledger credit. The bank paid once."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-03",
+      "faults": [
+        "partial_settlement",
+        "fee_mismatch"
+      ],
+      "held_out": false,
+      "id": "combo-two-part-fee_-2026-10-03",
+      "line_gap_kobo": 61000000,
+      "question": "Why is the 3 October 2026 settlement short?",
+      "red_herring": false,
+      "root_causes": [
+        {
+          "amount_kobo": 55000000,
+          "code": "partial_settlement",
+          "primary_keys": {
+            "processor.ledger_entries": [
+              "led_20261003_9001_net",
+              "led_20261003_9001_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261003_9001"
+            ],
+            "support.tickets": [
+              "tkt_20261003_9001"
+            ]
+          },
+          "summary": "One successful ledger credit has no bank settlement line."
+        },
+        {
+          "amount_kobo": 6000000,
+          "code": "fee_mismatch",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261003_9100",
+              "line_20261003_9101",
+              "line_20261003_9102",
+              "line_20261003_9103",
+              "line_20261003_9104",
+              "line_20261003_9105"
+            ],
+            "processor.transactions": [
+              "txn_20261003_9100",
+              "txn_20261003_9101",
+              "txn_20261003_9102",
+              "txn_20261003_9103",
+              "txn_20261003_9104",
+              "txn_20261003_9105"
+            ]
+          },
+          "summary": "Processor fee is 150 bps and the bank deducted 250 bps. Each of these lines is short by 1,000,000 kobo."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-05",
+      "faults": [
+        "partial_settlement",
+        "cutoff_timezone"
+      ],
+      "held_out": true,
+      "id": "combo-two-part-cuto-2026-10-05",
+      "line_gap_kobo": 37000000,
+      "question": "Why is the 5 October 2026 settlement short?",
+      "red_herring": false,
+      "root_causes": [
+        {
+          "amount_kobo": 22000000,
+          "code": "partial_settlement",
+          "primary_keys": {
+            "processor.ledger_entries": [
+              "led_20261005_9001_net",
+              "led_20261005_9001_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261005_9001"
+            ],
+            "support.tickets": [
+              "tkt_20261005_9001"
+            ]
+          },
+          "summary": "One successful ledger credit has no bank settlement line."
+        },
+        {
+          "amount_kobo": 15000000,
+          "code": "cutoff_timezone",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261006_9201"
+            ],
+            "processor.transactions": [
+              "txn_20261005_9201"
+            ]
+          },
+          "summary": "Successes inside the West Africa Time day but after the 20:00 UTC bank cutoff. The lines are on the next value date."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-07",
+      "faults": [
+        "cutoff_timezone",
+        "fee_mismatch"
+      ],
+      "held_out": false,
+      "id": "combo-two-cuto-fee_-2026-10-07",
+      "line_gap_kobo": 40000000,
+      "question": "Why is the 7 October 2026 settlement short?",
+      "red_herring": false,
+      "root_causes": [
+        {
+          "amount_kobo": 35000000,
+          "code": "cutoff_timezone",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261008_9201",
+              "line_20261008_9202",
+              "line_20261008_9203"
+            ],
+            "processor.transactions": [
+              "txn_20261007_9201",
+              "txn_20261007_9202",
+              "txn_20261007_9203"
+            ]
+          },
+          "summary": "Successes inside the West Africa Time day but after the 20:00 UTC bank cutoff. The lines are on the next value date."
+        },
+        {
+          "amount_kobo": 5000000,
+          "code": "fee_mismatch",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261007_9100",
+              "line_20261007_9101",
+              "line_20261007_9102",
+              "line_20261007_9103",
+              "line_20261007_9104"
+            ],
+            "processor.transactions": [
+              "txn_20261007_9100",
+              "txn_20261007_9101",
+              "txn_20261007_9102",
+              "txn_20261007_9103",
+              "txn_20261007_9104"
+            ]
+          },
+          "summary": "Processor fee is 150 bps and the bank deducted 250 bps. Each of these lines is short by 1,000,000 kobo."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-09",
+      "faults": [
+        "partial_settlement",
+        "cutoff_timezone",
+        "duplicate_webhook"
+      ],
+      "held_out": false,
+      "id": "combo-three-part-cuto-dupl-2026-10-09",
+      "line_gap_kobo": 148000000,
+      "question": "Why is the 9 October 2026 settlement short?",
+      "red_herring": false,
+      "root_causes": [
+        {
+          "amount_kobo": 90000000,
+          "code": "partial_settlement",
+          "primary_keys": {
+            "processor.ledger_entries": [
+              "led_20261009_9001_net",
+              "led_20261009_9001_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261009_9001"
+            ],
+            "support.tickets": [
+              "tkt_20261009_9001"
+            ]
+          },
+          "summary": "One successful ledger credit has no bank settlement line."
+        },
+        {
+          "amount_kobo": 25000000,
+          "code": "cutoff_timezone",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261010_9201"
+            ],
+            "processor.transactions": [
+              "txn_20261009_9201"
+            ]
+          },
+          "summary": "Successes inside the West Africa Time day but after the 20:00 UTC bank cutoff. The lines are on the next value date."
+        },
+        {
+          "amount_kobo": 33000000,
+          "code": "duplicate_webhook",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261009_9301"
+            ],
+            "events.webhook_events": [
+              "wh_20261009_9301_a1",
+              "wh_20261009_9302_a2"
+            ],
+            "processor.ledger_entries": [
+              "led_20261009_9301_net",
+              "led_20261009_9301_fee",
+              "led_20261009_9302_net",
+              "led_20261009_9302_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261009_9301",
+              "txn_20261009_9302"
+            ]
+          },
+          "summary": "A retried webhook created a second success and a second ledger credit. The bank paid once."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-11",
+      "faults": [
+        "cutoff_timezone",
+        "duplicate_webhook",
+        "fee_mismatch"
+      ],
+      "held_out": true,
+      "id": "combo-three-cuto-dupl-fee_-2026-10-11",
+      "line_gap_kobo": 130000000,
+      "question": "Why is the 11 October 2026 settlement short?",
+      "red_herring": false,
+      "root_causes": [
+        {
+          "amount_kobo": 70000000,
+          "code": "cutoff_timezone",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261012_9201",
+              "line_20261012_9202"
+            ],
+            "processor.transactions": [
+              "txn_20261011_9201",
+              "txn_20261011_9202"
+            ]
+          },
+          "summary": "Successes inside the West Africa Time day but after the 20:00 UTC bank cutoff. The lines are on the next value date."
+        },
+        {
+          "amount_kobo": 52000000,
+          "code": "duplicate_webhook",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261011_9301"
+            ],
+            "events.webhook_events": [
+              "wh_20261011_9301_a1",
+              "wh_20261011_9302_a2"
+            ],
+            "processor.ledger_entries": [
+              "led_20261011_9301_net",
+              "led_20261011_9301_fee",
+              "led_20261011_9302_net",
+              "led_20261011_9302_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261011_9301",
+              "txn_20261011_9302"
+            ]
+          },
+          "summary": "A retried webhook created a second success and a second ledger credit. The bank paid once."
+        },
+        {
+          "amount_kobo": 8000000,
+          "code": "fee_mismatch",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261011_9100",
+              "line_20261011_9101",
+              "line_20261011_9102",
+              "line_20261011_9103",
+              "line_20261011_9104",
+              "line_20261011_9105",
+              "line_20261011_9106",
+              "line_20261011_9107"
+            ],
+            "processor.transactions": [
+              "txn_20261011_9100",
+              "txn_20261011_9101",
+              "txn_20261011_9102",
+              "txn_20261011_9103",
+              "txn_20261011_9104",
+              "txn_20261011_9105",
+              "txn_20261011_9106",
+              "txn_20261011_9107"
+            ]
+          },
+          "summary": "Processor fee is 150 bps and the bank deducted 250 bps. Each of these lines is short by 1,000,000 kobo."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-23",
+      "faults": [
+        "partial_settlement",
+        "duplicate_webhook"
+      ],
+      "held_out": false,
+      "id": "combo-two-part-dupl-2026-10-23",
+      "line_gap_kobo": 58000000,
+      "question": "Why is the 23 October 2026 settlement short?",
+      "red_herring": false,
+      "root_causes": [
+        {
+          "amount_kobo": 40000000,
+          "code": "partial_settlement",
+          "primary_keys": {
+            "processor.ledger_entries": [
+              "led_20261023_9001_net",
+              "led_20261023_9001_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261023_9001"
+            ],
+            "support.tickets": [
+              "tkt_20261023_9001"
+            ]
+          },
+          "summary": "One successful ledger credit has no bank settlement line."
+        },
+        {
+          "amount_kobo": 18000000,
+          "code": "duplicate_webhook",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261023_9301"
+            ],
+            "events.webhook_events": [
+              "wh_20261023_9301_a1",
+              "wh_20261023_9302_a2"
+            ],
+            "processor.ledger_entries": [
+              "led_20261023_9301_net",
+              "led_20261023_9301_fee",
+              "led_20261023_9302_net",
+              "led_20261023_9302_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261023_9301",
+              "txn_20261023_9302"
+            ]
+          },
+          "summary": "A retried webhook created a second success and a second ledger credit. The bank paid once."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-24",
+      "faults": [
+        "duplicate_webhook",
+        "fee_mismatch"
+      ],
+      "held_out": false,
+      "id": "combo-two-dupl-fee_-2026-10-24",
+      "line_gap_kobo": 69000000,
+      "question": "Why is the 24 October 2026 settlement short?",
+      "red_herring": false,
+      "root_causes": [
+        {
+          "amount_kobo": 60000000,
+          "code": "duplicate_webhook",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261024_9301"
+            ],
+            "events.webhook_events": [
+              "wh_20261024_9301_a1",
+              "wh_20261024_9302_a2"
+            ],
+            "processor.ledger_entries": [
+              "led_20261024_9301_net",
+              "led_20261024_9301_fee",
+              "led_20261024_9302_net",
+              "led_20261024_9302_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261024_9301",
+              "txn_20261024_9302"
+            ]
+          },
+          "summary": "A retried webhook created a second success and a second ledger credit. The bank paid once."
+        },
+        {
+          "amount_kobo": 9000000,
+          "code": "fee_mismatch",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261024_9100",
+              "line_20261024_9101",
+              "line_20261024_9102",
+              "line_20261024_9103",
+              "line_20261024_9104",
+              "line_20261024_9105",
+              "line_20261024_9106",
+              "line_20261024_9107",
+              "line_20261024_9108"
+            ],
+            "processor.transactions": [
+              "txn_20261024_9100",
+              "txn_20261024_9101",
+              "txn_20261024_9102",
+              "txn_20261024_9103",
+              "txn_20261024_9104",
+              "txn_20261024_9105",
+              "txn_20261024_9106",
+              "txn_20261024_9107",
+              "txn_20261024_9108"
+            ]
+          },
+          "summary": "Processor fee is 150 bps and the bank deducted 250 bps. Each of these lines is short by 1,000,000 kobo."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-25",
+      "faults": [
+        "partial_settlement",
+        "duplicate_webhook",
+        "fee_mismatch"
+      ],
+      "held_out": false,
+      "id": "combo-three-part-dupl-fee_-2026-10-25",
+      "line_gap_kobo": 85000000,
+      "question": "Why is the 25 October 2026 settlement short?",
+      "red_herring": false,
+      "root_causes": [
+        {
+          "amount_kobo": 45000000,
+          "code": "partial_settlement",
+          "primary_keys": {
+            "processor.ledger_entries": [
+              "led_20261025_9001_net",
+              "led_20261025_9001_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261025_9001"
+            ],
+            "support.tickets": [
+              "tkt_20261025_9001"
+            ]
+          },
+          "summary": "One successful ledger credit has no bank settlement line."
+        },
+        {
+          "amount_kobo": 28000000,
+          "code": "duplicate_webhook",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261025_9301"
+            ],
+            "events.webhook_events": [
+              "wh_20261025_9301_a1",
+              "wh_20261025_9302_a2"
+            ],
+            "processor.ledger_entries": [
+              "led_20261025_9301_net",
+              "led_20261025_9301_fee",
+              "led_20261025_9302_net",
+              "led_20261025_9302_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261025_9301",
+              "txn_20261025_9302"
+            ]
+          },
+          "summary": "A retried webhook created a second success and a second ledger credit. The bank paid once."
+        },
+        {
+          "amount_kobo": 12000000,
+          "code": "fee_mismatch",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261025_9100",
+              "line_20261025_9101",
+              "line_20261025_9102",
+              "line_20261025_9103",
+              "line_20261025_9104",
+              "line_20261025_9105",
+              "line_20261025_9106",
+              "line_20261025_9107",
+              "line_20261025_9108",
+              "line_20261025_9109",
+              "line_20261025_9110",
+              "line_20261025_9111"
+            ],
+            "processor.transactions": [
+              "txn_20261025_9100",
+              "txn_20261025_9101",
+              "txn_20261025_9102",
+              "txn_20261025_9103",
+              "txn_20261025_9104",
+              "txn_20261025_9105",
+              "txn_20261025_9106",
+              "txn_20261025_9107",
+              "txn_20261025_9108",
+              "txn_20261025_9109",
+              "txn_20261025_9110",
+              "txn_20261025_9111"
+            ]
+          },
+          "summary": "Processor fee is 150 bps and the bank deducted 250 bps. Each of these lines is short by 1,000,000 kobo."
+        }
+      ],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-29",
+      "faults": [
+        "partial_settlement",
+        "unattributable_short_payment"
+      ],
+      "held_out": false,
+      "id": "combo-two-part-unat-2026-10-29",
+      "line_gap_kobo": 42000000,
+      "question": "Why is the 29 October 2026 settlement short?",
+      "red_herring": false,
+      "root_causes": [
+        {
+          "amount_kobo": 30000000,
+          "code": "partial_settlement",
+          "primary_keys": {
+            "processor.ledger_entries": [
+              "led_20261029_9001_net",
+              "led_20261029_9001_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261029_9001"
+            ],
+            "support.tickets": [
+              "tkt_20261029_9001"
+            ]
+          },
+          "summary": "One successful ledger credit has no bank settlement line."
+        }
+      ],
+      "unexplained_kobo": 12000000
+    },
+    {
+      "business_date": "2026-10-28",
+      "faults": [
+        "duplicate_webhook",
+        "unattributable_short_payment"
+      ],
+      "held_out": true,
+      "id": "combo-two-dupl-unat-2026-10-28",
+      "line_gap_kobo": 30000000,
+      "question": "Why is the 28 October 2026 settlement short?",
+      "red_herring": false,
+      "root_causes": [
+        {
+          "amount_kobo": 20000000,
+          "code": "duplicate_webhook",
+          "primary_keys": {
+            "bank.settlement_lines": [
+              "line_20261028_9301"
+            ],
+            "events.webhook_events": [
+              "wh_20261028_9301_a1",
+              "wh_20261028_9302_a2"
+            ],
+            "processor.ledger_entries": [
+              "led_20261028_9301_net",
+              "led_20261028_9301_fee",
+              "led_20261028_9302_net",
+              "led_20261028_9302_fee"
+            ],
+            "processor.transactions": [
+              "txn_20261028_9301",
+              "txn_20261028_9302"
+            ]
+          },
+          "summary": "A retried webhook created a second success and a second ledger credit. The bank paid once."
+        }
+      ],
+      "unexplained_kobo": 10000000
+    },
+    {
+      "business_date": "2026-10-26",
+      "faults": [],
+      "id": "red-herring-2026-10-26",
+      "line_gap_kobo": 0,
+      "question": "The 26 October 2026 narrations mention reversals and chargebacks. Is money missing?",
+      "red_herring": true,
+      "root_causes": [],
+      "unexplained_kobo": 0
+    },
+    {
+      "business_date": "2026-10-27",
+      "faults": [],
+      "held_out": true,
+      "id": "red-herring-2026-10-27",
+      "line_gap_kobo": 0,
+      "question": "The 27 October 2026 narrations mention reversals and chargebacks. Is money missing?",
+      "red_herring": true,
+      "root_causes": [],
+      "unexplained_kobo": 0
+    }
+  ],
+  "timezone": "Business dates are West Africa Time (UTC+1). Stored timestamps are UTC. Business date D is [D-1 23:00 UTC, D 23:00 UTC). Bank batches cut off at 20:00 UTC (21:00 WAT). line_gap_kobo is successful processor net minus bank lines with that value_date. Negative means the bank paid more than the success book."
+}
