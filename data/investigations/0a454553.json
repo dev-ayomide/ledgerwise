@@ -1,0 +1,522 @@
+{
+  "id": "0a454553",
+  "question": "why",
+  "business_date": "2026-10-28",
+  "engine": "zetaris-rest",
+  "created_at": "2026-10-27T21:51:02Z",
+  "events": [
+    {
+      "type": "investigation_started",
+      "seq": 1,
+      "ts": "2026-10-27T21:50:53.904+00:00",
+      "data": {
+        "question": "why",
+        "business_date": "2026-10-28",
+        "investigation_id": "0a454553"
+      }
+    },
+    {
+      "type": "query_started",
+      "seq": 2,
+      "ts": "2026-10-27T21:50:53.904+00:00",
+      "data": {
+        "evidence_id": "E1",
+        "purpose": "Headline numbers: expected processor net vs bank lines for the value date",
+        "sql": "WITH window_tx AS (\n  SELECT id, amount_kobo, fee_kobo\n  FROM processor.transactions\n  WHERE status = 'success'\n    AND created_at >= TIMESTAMP '2026-10-27 23:00:00'\n    AND created_at < TIMESTAMP '2026-10-28 23:00:00'\n),\nexpected AS (\n  SELECT\n    COALESCE(SUM(amount_kobo - fee_kobo), 0) AS expected_kobo,\n    COUNT(*) AS success_count\n  FROM window_tx\n),\nactual AS (\n  SELECT\n    COALESCE(SUM(amount_kobo), 0) AS actual_kobo,\n    COUNT(*) AS line_count\n  FROM bank.settlement_lines\n  WHERE value_date = DATE '2026-10-28'\n),\nhooks AS (\n  SELECT COUNT(*) AS webhook_count\n  FROM events.webhook_events\n  WHERE received_at >= TIMESTAMP '2026-10-27 23:00:00'\n    AND received_at < TIMESTAMP '2026-10-28 23:00:00'\n),\ntickets AS (\n  SELECT COUNT(*) AS ticket_count\n  FROM support.tickets\n  WHERE created_at >= TIMESTAMP '2026-10-27 23:00:00'\n    AND created_at < TIMESTAMP '2026-10-28 23:00:00'\n)\nSELECT\n  expected.expected_kobo,\n  actual.actual_kobo,\n  expected.expected_kobo - actual.actual_kobo AS gap_kobo,\n  expected.success_count,\n  actual.line_count,\n  hooks.webhook_count,\n  tickets.ticket_count\nFROM expected, actual, hooks, tickets"
+      }
+    },
+    {
+      "type": "query_result",
+      "seq": 3,
+      "ts": "2026-10-27T21:50:54.516+00:00",
+      "data": {
+        "id": "E1",
+        "purpose": "Headline numbers: expected processor net vs bank lines for the value date",
+        "sql": "WITH window_tx AS (SELECT id, amount_kobo, fee_kobo FROM processor.transactions WHERE status = 'success' AND created_at >= CAST('2026-10-27 23:00:00' AS TIMESTAMP) AND created_at < CAST('2026-10-28 23:00:00' AS TIMESTAMP)), expected AS (SELECT COALESCE(SUM(amount_kobo - fee_kobo), 0) AS expected_kobo, COUNT(*) AS success_count FROM window_tx), actual AS (SELECT COALESCE(SUM(amount_kobo), 0) AS actual_kobo, COUNT(*) AS line_count FROM bank.settlement_lines WHERE value_date = CAST('2026-10-28' AS DATE)), hooks AS (SELECT COUNT(*) AS webhook_count FROM events.webhook_events WHERE received_at >= CAST('2026-10-27 23:00:00' AS TIMESTAMP) AND received_at < CAST('2026-10-28 23:00:00' AS TIMESTAMP)), tickets AS (SELECT COUNT(*) AS ticket_count FROM support.tickets WHERE created_at >= CAST('2026-10-27 23:00:00' AS TIMESTAMP) AND created_at < CAST('2026-10-28 23:00:00' AS TIMESTAMP)) SELECT expected.expected_kobo, actual.actual_kobo, expected.expected_kobo - actual.actual_kobo AS gap_kobo, expected.success_count, actual.line_count, hooks.webhook_count, tickets.ticket_count FROM expected, actual, hooks, tickets LIMIT 500",
+        "tables": [
+          "bank.settlement_lines",
+          "events.webhook_events",
+          "processor.transactions",
+          "support.tickets"
+        ],
+        "sources": [
+          "Bank settlement files (Parquet)",
+          "Processor DB (Postgres)",
+          "Support tickets (Postgres)",
+          "Webhook log (Postgres)"
+        ],
+        "engine": "zetaris-rest",
+        "row_count": 1,
+        "duration_ms": 603,
+        "columns": [
+          "expected_kobo",
+          "actual_kobo",
+          "gap_kobo",
+          "success_count",
+          "line_count",
+          "webhook_count",
+          "ticket_count"
+        ],
+        "rows": [
+          {
+            "expected_kobo": 1614548679,
+            "actual_kobo": 1584548679,
+            "gap_kobo": 30000000,
+            "success_count": 15,
+            "line_count": 14,
+            "webhook_count": 15,
+            "ticket_count": 0
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "type": "finding",
+      "seq": 4,
+      "ts": "2026-10-27T21:50:54.516+00:00",
+      "data": {
+        "text": "Processor expects 1614548679 kobo from 15 successful transactions. The bank settled 1584548679 kobo across 14 lines. Gap: 30000000 kobo.",
+        "evidence_ids": [
+          "E1"
+        ]
+      }
+    },
+    {
+      "type": "plan",
+      "seq": 5,
+      "ts": "2026-10-27T21:50:54.516+00:00",
+      "data": {
+        "direction": "The processor expects more than the bank paid.",
+        "checks": [
+          {
+            "code": "partial_settlement",
+            "label": "Missing bank line",
+            "why": "Processor successes with no bank line on any value date."
+          },
+          {
+            "code": "cutoff_timezone",
+            "label": "Bank cutoff and timezone shift",
+            "why": "Successes after the 20:00 UTC cutoff settle on the next value date."
+          },
+          {
+            "code": "duplicate_webhook",
+            "label": "Duplicate webhook credits",
+            "why": "Two processor successes for one reference while the bank paid once."
+          },
+          {
+            "code": "fee_mismatch",
+            "label": "Fee rate mismatch",
+            "why": "Bank lines slightly below processor net point to a different fee rate."
+          }
+        ]
+      }
+    },
+    {
+      "type": "query_started",
+      "seq": 6,
+      "ts": "2026-10-27T21:50:54.517+00:00",
+      "data": {
+        "evidence_id": "E2",
+        "purpose": "Missing bank line",
+        "sql": "WITH proc_success AS (\n  SELECT\n    reference,\n    amount_kobo - fee_kobo AS proc_net\n  FROM processor.transactions\n  WHERE status = 'success'\n    AND created_at >= TIMESTAMP '2026-10-27 23:00:00'\n    AND created_at < TIMESTAMP '2026-10-28 23:00:00'\n),\nsettled_refs AS (\n  SELECT DISTINCT UPPER(REGEXP_REPLACE(matched_reference, '^REF/', '')) AS matched_reference\n  FROM bank.settlement_lines\n)\nSELECT\n  p.reference AS matched_reference,\n  p.proc_net,\n  p.proc_net AS bank_amount,\n  p.proc_net AS gap_kobo\nFROM proc_success p\nWHERE p.reference NOT IN (SELECT matched_reference FROM settled_refs)"
+      }
+    },
+    {
+      "type": "query_result",
+      "seq": 7,
+      "ts": "2026-10-27T21:50:55.599+00:00",
+      "data": {
+        "id": "E2",
+        "purpose": "Missing bank line",
+        "sql": "WITH proc_success AS (SELECT reference, amount_kobo - fee_kobo AS proc_net FROM processor.transactions WHERE status = 'success' AND created_at >= CAST('2026-10-27 23:00:00' AS TIMESTAMP) AND created_at < CAST('2026-10-28 23:00:00' AS TIMESTAMP)), settled_refs AS (SELECT DISTINCT UPPER(REGEXP_REPLACE(matched_reference, '^REF/', '')) AS matched_reference FROM bank.settlement_lines) SELECT p.reference AS matched_reference, p.proc_net, p.proc_net AS bank_amount, p.proc_net AS gap_kobo FROM proc_success AS p WHERE NOT p.reference IN (SELECT matched_reference FROM settled_refs) LIMIT 500",
+        "tables": [
+          "bank.settlement_lines",
+          "processor.transactions"
+        ],
+        "sources": [
+          "Bank settlement files (Parquet)",
+          "Processor DB (Postgres)"
+        ],
+        "engine": "zetaris-rest",
+        "row_count": 0,
+        "duration_ms": 1078,
+        "columns": [
+          "matched_reference",
+          "proc_net",
+          "bank_amount",
+          "gap_kobo"
+        ],
+        "rows": [],
+        "truncated": false
+      }
+    },
+    {
+      "type": "finding",
+      "seq": 8,
+      "ts": "2026-10-27T21:50:55.600+00:00",
+      "data": {
+        "text": "Missing bank line: nothing found for this date.",
+        "evidence_ids": [
+          "E2"
+        ]
+      }
+    },
+    {
+      "type": "query_started",
+      "seq": 9,
+      "ts": "2026-10-27T21:50:55.600+00:00",
+      "data": {
+        "evidence_id": "E3",
+        "purpose": "Bank cutoff and timezone shift",
+        "sql": "WITH after_cutoff AS (\n  SELECT\n    id,\n    reference,\n    amount_kobo,\n    fee_kobo,\n    amount_kobo - fee_kobo AS net_kobo,\n    created_at\n  FROM processor.transactions\n  WHERE status = 'success'\n    AND created_at >= TIMESTAMP '2026-10-28 20:00:00'\n    AND created_at < TIMESTAMP '2026-10-28 23:00:00'\n),\nsettled_today AS (\n  SELECT DISTINCT UPPER(REGEXP_REPLACE(matched_reference, '^REF/', '')) AS matched_reference\n  FROM bank.settlement_lines\n  WHERE value_date = DATE '2026-10-28'\n),\nsettled_later AS (\n  SELECT\n    UPPER(REGEXP_REPLACE(matched_reference, '^REF/', '')) AS matched_reference,\n    MIN(value_date) AS later_value_date,\n    MIN(line_id) AS later_line_id\n  FROM bank.settlement_lines\n  WHERE value_date > DATE '2026-10-28'\n  GROUP BY UPPER(REGEXP_REPLACE(matched_reference, '^REF/', ''))\n)\nSELECT\n  ac.id,\n  ac.reference,\n  ac.amount_kobo,\n  ac.fee_kobo,\n  ac.net_kobo,\n  ac.created_at,\n  sl.later_value_date,\n  sl.later_line_id\nFROM after_cutoff ac\nJOIN settled_later sl ON sl.matched_reference = ac.reference\nWHERE ac.reference NOT IN (SELECT matched_reference FROM settled_today)"
+      }
+    },
+    {
+      "type": "query_result",
+      "seq": 10,
+      "ts": "2026-10-27T21:50:57.417+00:00",
+      "data": {
+        "id": "E3",
+        "purpose": "Bank cutoff and timezone shift",
+        "sql": "WITH after_cutoff AS (SELECT id, reference, amount_kobo, fee_kobo, amount_kobo - fee_kobo AS net_kobo, created_at FROM processor.transactions WHERE status = 'success' AND created_at >= CAST('2026-10-28 20:00:00' AS TIMESTAMP) AND created_at < CAST('2026-10-28 23:00:00' AS TIMESTAMP)), settled_today AS (SELECT DISTINCT UPPER(REGEXP_REPLACE(matched_reference, '^REF/', '')) AS matched_reference FROM bank.settlement_lines WHERE value_date = CAST('2026-10-28' AS DATE)), settled_later AS (SELECT UPPER(REGEXP_REPLACE(matched_reference, '^REF/', '')) AS matched_reference, MIN(value_date) AS later_value_date, MIN(line_id) AS later_line_id FROM bank.settlement_lines WHERE value_date > CAST('2026-10-28' AS DATE) GROUP BY UPPER(REGEXP_REPLACE(matched_reference, '^REF/', ''))) SELECT ac.id, ac.reference, ac.amount_kobo, ac.fee_kobo, ac.net_kobo, ac.created_at, sl.later_value_date, sl.later_line_id FROM after_cutoff AS ac JOIN settled_later AS sl ON sl.matched_reference = ac.reference WHERE NOT ac.reference IN (SELECT matched_reference FROM settled_today) LIMIT 500",
+        "tables": [
+          "bank.settlement_lines",
+          "processor.transactions"
+        ],
+        "sources": [
+          "Bank settlement files (Parquet)",
+          "Processor DB (Postgres)"
+        ],
+        "engine": "zetaris-rest",
+        "row_count": 0,
+        "duration_ms": 1810,
+        "columns": [
+          "id",
+          "reference",
+          "amount_kobo",
+          "fee_kobo",
+          "net_kobo",
+          "created_at",
+          "later_value_date",
+          "later_line_id"
+        ],
+        "rows": [],
+        "truncated": false
+      }
+    },
+    {
+      "type": "finding",
+      "seq": 11,
+      "ts": "2026-10-27T21:50:57.417+00:00",
+      "data": {
+        "text": "Bank cutoff and timezone shift: nothing found for this date.",
+        "evidence_ids": [
+          "E3"
+        ]
+      }
+    },
+    {
+      "type": "query_started",
+      "seq": 12,
+      "ts": "2026-10-27T21:50:57.418+00:00",
+      "data": {
+        "evidence_id": "E4",
+        "purpose": "Duplicate webhook credits",
+        "sql": "WITH proc_success AS (\n  SELECT\n    reference,\n    COUNT(*) AS proc_count,\n    SUM(amount_kobo - fee_kobo) AS proc_net_kobo\n  FROM processor.transactions\n  WHERE status = 'success'\n    AND created_at >= TIMESTAMP '2026-10-27 23:00:00'\n    AND created_at < TIMESTAMP '2026-10-28 23:00:00'\n  GROUP BY reference\n  HAVING COUNT(*) >= 2\n),\nbank_lines AS (\n  SELECT\n    UPPER(REGEXP_REPLACE(matched_reference, '^REF/', '')) AS matched_reference,\n    COUNT(*) AS bank_count,\n    COALESCE(SUM(amount_kobo), 0) AS bank_total_kobo\n  FROM bank.settlement_lines\n  WHERE value_date = DATE '2026-10-28'\n  GROUP BY UPPER(REGEXP_REPLACE(matched_reference, '^REF/', ''))\n)\nSELECT\n  p.reference AS matched_reference,\n  p.proc_count,\n  COALESCE(b.bank_count, 0) AS bank_count,\n  p.proc_net_kobo,\n  COALESCE(b.bank_total_kobo, 0) AS bank_total_kobo,\n  p.proc_net_kobo - COALESCE(b.bank_total_kobo, 0) AS gap_kobo\nFROM proc_success p\nLEFT JOIN bank_lines b\n  ON b.matched_reference = p.reference\nWHERE p.proc_count > COALESCE(b.bank_count, 0)"
+      }
+    },
+    {
+      "type": "query_result",
+      "seq": 13,
+      "ts": "2026-10-27T21:50:58.027+00:00",
+      "data": {
+        "id": "E4",
+        "purpose": "Duplicate webhook credits",
+        "sql": "WITH proc_success AS (SELECT reference, COUNT(*) AS proc_count, SUM(amount_kobo - fee_kobo) AS proc_net_kobo FROM processor.transactions WHERE status = 'success' AND created_at >= CAST('2026-10-27 23:00:00' AS TIMESTAMP) AND created_at < CAST('2026-10-28 23:00:00' AS TIMESTAMP) GROUP BY reference HAVING COUNT(*) >= 2), bank_lines AS (SELECT UPPER(REGEXP_REPLACE(matched_reference, '^REF/', '')) AS matched_reference, COUNT(*) AS bank_count, COALESCE(SUM(amount_kobo), 0) AS bank_total_kobo FROM bank.settlement_lines WHERE value_date = CAST('2026-10-28' AS DATE) GROUP BY UPPER(REGEXP_REPLACE(matched_reference, '^REF/', ''))) SELECT p.reference AS matched_reference, p.proc_count, COALESCE(b.bank_count, 0) AS bank_count, p.proc_net_kobo, COALESCE(b.bank_total_kobo, 0) AS bank_total_kobo, p.proc_net_kobo - COALESCE(b.bank_total_kobo, 0) AS gap_kobo FROM proc_success AS p LEFT JOIN bank_lines AS b ON b.matched_reference = p.reference WHERE p.proc_count > COALESCE(b.bank_count, 0) LIMIT 500",
+        "tables": [
+          "bank.settlement_lines",
+          "processor.transactions"
+        ],
+        "sources": [
+          "Bank settlement files (Parquet)",
+          "Processor DB (Postgres)"
+        ],
+        "engine": "zetaris-rest",
+        "row_count": 1,
+        "duration_ms": 600,
+        "columns": [
+          "matched_reference",
+          "proc_count",
+          "bank_count",
+          "proc_net_kobo",
+          "bank_total_kobo",
+          "gap_kobo"
+        ],
+        "rows": [
+          {
+            "matched_reference": "LW-20261028-DUP",
+            "proc_count": 2,
+            "bank_count": 1,
+            "proc_net_kobo": 40000000,
+            "bank_total_kobo": 20000000,
+            "gap_kobo": 20000000
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "type": "finding",
+      "seq": 14,
+      "ts": "2026-10-27T21:50:58.028+00:00",
+      "data": {
+        "text": "Reference LW-20261028-DUP has 2 processor successes but 1 bank line. The extra credit is 20000000 kobo.",
+        "evidence_ids": [
+          "E4"
+        ]
+      }
+    },
+    {
+      "type": "hypothesis",
+      "seq": 15,
+      "ts": "2026-10-27T21:50:58.028+00:00",
+      "data": {
+        "code": "duplicate_webhook",
+        "label": "Duplicate webhook credits",
+        "amount_kobo": 20000000,
+        "evidence_ids": [
+          "E4"
+        ]
+      }
+    },
+    {
+      "type": "query_started",
+      "seq": 16,
+      "ts": "2026-10-27T21:50:58.028+00:00",
+      "data": {
+        "evidence_id": "E5",
+        "purpose": "Fee rate mismatch",
+        "sql": "WITH proc_success AS (\n  SELECT\n    reference,\n    amount_kobo - fee_kobo AS proc_net\n  FROM processor.transactions\n  WHERE status = 'success'\n    AND created_at >= TIMESTAMP '2026-10-27 23:00:00'\n    AND created_at < TIMESTAMP '2026-10-28 23:00:00'\n),\nbank_lines AS (\n  SELECT\n    UPPER(REGEXP_REPLACE(matched_reference, '^REF/', '')) AS matched_reference,\n    SUM(amount_kobo) AS bank_amount\n  FROM bank.settlement_lines\n  WHERE value_date = DATE '2026-10-28'\n  GROUP BY UPPER(REGEXP_REPLACE(matched_reference, '^REF/', ''))\n)\nSELECT\n  b.matched_reference,\n  p.proc_net,\n  b.bank_amount,\n  p.proc_net - b.bank_amount AS gap_kobo\nFROM proc_success p\nJOIN bank_lines b\n  ON b.matched_reference = p.reference\nWHERE b.bank_amount < p.proc_net\n  AND (p.proc_net - b.bank_amount) * 100 <= p.proc_net * 5"
+      }
+    },
+    {
+      "type": "query_result",
+      "seq": 17,
+      "ts": "2026-10-27T21:50:58.333+00:00",
+      "data": {
+        "id": "E5",
+        "purpose": "Fee rate mismatch",
+        "sql": "WITH proc_success AS (SELECT reference, amount_kobo - fee_kobo AS proc_net FROM processor.transactions WHERE status = 'success' AND created_at >= CAST('2026-10-27 23:00:00' AS TIMESTAMP) AND created_at < CAST('2026-10-28 23:00:00' AS TIMESTAMP)), bank_lines AS (SELECT UPPER(REGEXP_REPLACE(matched_reference, '^REF/', '')) AS matched_reference, SUM(amount_kobo) AS bank_amount FROM bank.settlement_lines WHERE value_date = CAST('2026-10-28' AS DATE) GROUP BY UPPER(REGEXP_REPLACE(matched_reference, '^REF/', ''))) SELECT b.matched_reference, p.proc_net, b.bank_amount, p.proc_net - b.bank_amount AS gap_kobo FROM proc_success AS p JOIN bank_lines AS b ON b.matched_reference = p.reference WHERE b.bank_amount < p.proc_net AND (p.proc_net - b.bank_amount) * 100 <= p.proc_net * 5 LIMIT 500",
+        "tables": [
+          "bank.settlement_lines",
+          "processor.transactions"
+        ],
+        "sources": [
+          "Bank settlement files (Parquet)",
+          "Processor DB (Postgres)"
+        ],
+        "engine": "zetaris-rest",
+        "row_count": 0,
+        "duration_ms": 300,
+        "columns": [
+          "matched_reference",
+          "proc_net",
+          "bank_amount",
+          "gap_kobo"
+        ],
+        "rows": [],
+        "truncated": false
+      }
+    },
+    {
+      "type": "finding",
+      "seq": 18,
+      "ts": "2026-10-27T21:50:58.334+00:00",
+      "data": {
+        "text": "Fee rate mismatch: nothing found for this date.",
+        "evidence_ids": [
+          "E5"
+        ]
+      }
+    },
+    {
+      "type": "falsification_attempt",
+      "seq": 19,
+      "ts": "2026-10-27T21:50:58.334+00:00",
+      "data": {
+        "code": "duplicate_webhook",
+        "approach": "Check the webhook log: a real duplicate shows a retry sequence for one reference."
+      }
+    },
+    {
+      "type": "query_started",
+      "seq": 20,
+      "ts": "2026-10-27T21:50:58.334+00:00",
+      "data": {
+        "evidence_id": "E6",
+        "purpose": "Falsify duplicate: is this a webhook retry or two distinct payments?",
+        "sql": "SELECT\n  transaction_reference,\n  COUNT(*) AS events,\n  COUNT(DISTINCT attempt) AS attempts,\n  MIN(received_at) AS first_at,\n  MAX(received_at) AS last_at\nFROM events.webhook_events\nWHERE transaction_reference IN ('LW-20261028-DUP')\n  AND event_type = 'charge.success'\nGROUP BY transaction_reference"
+      }
+    },
+    {
+      "type": "query_result",
+      "seq": 21,
+      "ts": "2026-10-27T21:50:58.435+00:00",
+      "data": {
+        "id": "E6",
+        "purpose": "Falsify duplicate: is this a webhook retry or two distinct payments?",
+        "sql": "SELECT transaction_reference, COUNT(*) AS events, COUNT(DISTINCT attempt) AS attempts, MIN(received_at) AS first_at, MAX(received_at) AS last_at FROM events.webhook_events WHERE transaction_reference IN ('LW-20261028-DUP') AND event_type = 'charge.success' GROUP BY transaction_reference LIMIT 500",
+        "tables": [
+          "events.webhook_events"
+        ],
+        "sources": [
+          "Webhook log (Postgres)"
+        ],
+        "engine": "zetaris-rest",
+        "row_count": 1,
+        "duration_ms": 98,
+        "columns": [
+          "transaction_reference",
+          "events",
+          "attempts",
+          "first_at",
+          "last_at"
+        ],
+        "rows": [
+          {
+            "transaction_reference": "LW-20261028-DUP",
+            "events": 2,
+            "attempts": 2,
+            "first_at": "2026-10-28 11:15:05.0",
+            "last_at": "2026-10-28 11:15:45.0"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "type": "falsification_result",
+      "seq": 22,
+      "ts": "2026-10-27T21:50:58.435+00:00",
+      "data": {
+        "code": "duplicate_webhook",
+        "survived": true,
+        "note": "The webhook log shows a retry sequence (attempt 1 then 2) for each reference, so these are one payment delivered twice, not two payments.",
+        "evidence_ids": [
+          "E6"
+        ]
+      }
+    },
+    {
+      "type": "math_summary",
+      "seq": 23,
+      "ts": "2026-10-27T21:50:58.435+00:00",
+      "data": {
+        "gap_kobo": 30000000,
+        "explained_kobo": 20000000,
+        "unexplained_kobo": 10000000,
+        "by_cause": [
+          {
+            "code": "duplicate_webhook",
+            "amount_kobo": 20000000
+          }
+        ],
+        "note": "Computed in code from query results. The model never does this arithmetic."
+      }
+    },
+    {
+      "type": "report",
+      "seq": 24,
+      "ts": "2026-10-27T21:51:02.310+00:00",
+      "data": {
+        "business_date": "2026-10-28",
+        "gap_kobo": 30000000,
+        "expected_kobo": 1614548679,
+        "actual_kobo": 1584548679,
+        "unexplained_kobo": 10000000,
+        "causes": [
+          {
+            "code": "duplicate_webhook",
+            "amount_kobo": 20000000,
+            "summary": "Reference LW-20261028-DUP has 2 processor successes but 1 bank line. The extra credit is 20000000 kobo.",
+            "confidence": "medium",
+            "survived_falsification": true,
+            "falsification_note": "The webhook log shows a retry sequence (attempt 1 then 2) for each reference, so these are one payment delivered twice, not two payments.",
+            "evidence_ids": [
+              "E4",
+              "E6"
+            ],
+            "row_count": 1
+          }
+        ],
+        "dropped": [],
+        "query_count": 6,
+        "evidence_ids": [
+          "E1",
+          "E2",
+          "E3",
+          "E4",
+          "E5",
+          "E6"
+        ],
+        "narrative": {
+          "text": "The total settlement gap is NGN 300,000.00 [E4, E6]. A retried webhook created a duplicate credit of NGN 200,000.00 [E4, E6]. Part of the gap is unexplained, amounting to NGN 100,000.00.",
+          "source": "nvidia/nemotron-3-ultra-550b-a55b",
+          "trace": {
+            "model": "nvidia/nemotron-3-ultra-550b-a55b",
+            "latency_ms": 3113,
+            "usage": {
+              "prompt_tokens": 346,
+              "completion_tokens": 81,
+              "total_tokens": 427
+            }
+          },
+          "verification": {
+            "model": "meterless/fast",
+            "trace": {
+              "model": "meterless/fast",
+              "latency_ms": 757,
+              "usage": {
+                "prompt_tokens": 442,
+                "completion_tokens": 2,
+                "total_tokens": 444
+              },
+              "routed_to": "nvidia/nemotron-3.5-bolt-e4b",
+              "receipt_id": "rcpt_req_g2h6iia3"
+            },
+            "status": "pass"
+          }
+        }
+      }
+    },
+    {
+      "type": "actions_proposed",
+      "seq": 25,
+      "ts": "2026-10-27T21:51:02.310+00:00",
+      "data": {
+        "actions": [
+          {
+            "id": "act_duplicate_webhook",
+            "code": "duplicate_webhook",
+            "title": "Request reversal of the duplicate ledger credit",
+            "amount_kobo": 20000000,
+            "draft": "Reversal request for 2026-10-28: a retried webhook created a second success and ledger credit worth 20000000 kobo. The bank paid once. Reverse the second credit and enforce idempotency on the webhook handler. Evidence: E4, E6.",
+            "status": "proposed",
+            "executes_anything": false
+          }
+        ]
+      }
+    },
+    {
+      "type": "investigation_finished",
+      "seq": 26,
+      "ts": "2026-10-27T21:51:02.311+00:00",
+      "data": {
+        "duration_ms": 4531,
+        "query_count": 6,
+        "engine": "zetaris-rest"
+      }
+    }
+  ]
+}

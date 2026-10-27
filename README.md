@@ -53,7 +53,9 @@ Notes from testing (27 Oct 2026): the model list shows 85 models, but several Ne
 
 Meterless Nightshift runs locally and exposes an OpenAI-compatible endpoint (`http://127.0.0.1:8088/v1`). Ledgerwise uses it as an independent second model: after Nemotron writes the summary and the code-level checks pass, Nightshift is asked to check every sentence against the facts and answer PASS or FAIL. A FAIL replaces the summary with the template. The report shows the result.
 
-Status (27 Oct 2026): tested against live Nightshift with a provider key added. In direct tests, `meterless/fast`, `meterless/deep` and `meterless/fusion` each passed a correct summary and failed two tampered ones (wrong cause, false "unexplained" claim). Nightshift routed the request to an NVIDIA Nemotron model and returned a compute receipt, whose id the report shows. `meterless/auto` failed once because both of its lanes were unavailable, so Ledgerwise uses `meterless/fast`. A full investigation run in the app after those tests got a 401 (`runtime_token_mismatch`): Nightshift had rotated its runtime key, and `.env.local` needs the new one. The report then shows "unavailable" and the summary is unaffected. This line will be updated once a full app run succeeds.
+Status (27 Oct 2026): working end to end. Full investigations for 21 Oct (the NGN 4.2M demo) and 28 Oct (with an unexplained remainder) each ran through the app: Nemotron Ultra wrote the summary, the code-level checks passed, and Nightshift's `meterless/fast` returned PASS. Nightshift routed the check to an NVIDIA Nemotron model (`nvidia/nemotron-3.5-bolt-e4b`) and returned a compute receipt, whose id the report shows (latency 0.8 to 5 s). In direct tests `meterless/fast`, `deep` and `fusion` each also failed two deliberately wrong summaries (wrong cause, false "unexplained" claim). `meterless/auto` failed once when both its lanes were unavailable, so Ledgerwise uses `meterless/fast`. The Nightshift runtime key can rotate; after a rotation the report shows the check as "unavailable" and the summary is unaffected.
+
+What this is and is not: Meterless is used as a second, independent model check on the written summary. It is not used for the investigation queries or amounts, and the check is advisory on top of the code validation. The wrongly-worded-summary tests are ours, 3 cases, not a measured accuracy.
 
 Relay, which saves verified runs as replayable skills, is a Windows app and is not used. Replay in this project is our own stored event stream, not Meterless.
 
@@ -99,5 +101,5 @@ Open http://localhost:8765. Without Zetaris, `LEDGERWISE_GATEWAY=local` runs the
 - Six causes are covered: duplicate webhook, cutoff/timezone, fee mismatch, partial settlement, stuck pending, header discrepancy. Reversal without ledger entry, rounding, duplicate bank lines, missing-webhook tickets and chargebacks are not implemented.
 - A short payment under 5% of net would be labelled a fee mismatch. Not tested.
 - No public deployment. Zetaris runs locally, so the demo is a local run and the recorded video.
-- Meterless check is wired but has not yet run against a real model (see above). Nemotron only writes the summary.
+- Nemotron only writes the summary, and Meterless only checks it. Neither chooses queries or computes amounts.
 - No authentication. Synthetic data only.

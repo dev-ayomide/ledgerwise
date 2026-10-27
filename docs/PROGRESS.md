@@ -90,3 +90,8 @@ Next:
 
 - User adds a provider key (or downloads a local model) in Nightshift under Setup > Providers, then rerun a Meterless check and update the README status.
 - Video, deck, GitHub push, Cursor evidence.
+
+## 2026-10-27 (late night) — Meterless verified end to end
+
+- Refreshed the rotated Nightshift key. Full runs for 2026-10-21 and 2026-10-28 got PASS from `meterless/fast`, with receipts `rcpt_req_espsi814` and `rcpt_req_g2h6iia3`, routed to `nvidia/nemotron-3.5-bolt-e4b`.
+- Next: video, deck, GitHub push, Cursor evidence. Do not rotate the Nightshift key before recording.
