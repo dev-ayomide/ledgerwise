@@ -20,7 +20,7 @@ from typing import Any
 from backend.agent import queries
 from backend.agent.events import Event
 from backend.agent.models import Investigation, RootCause
-from backend.agent.narrative import summarize
+from backend.agent.narrative import summarize, template_summary, verify
 from backend.gateway.models import QueryResult
 
 MAX_QUERIES = 12
@@ -125,9 +125,10 @@ CHECKS: dict[str, _Check] = {
 
 
 class Investigator:
-    def __init__(self, gateway, llm=None) -> None:
+    def __init__(self, gateway, llm=None, verifier=None) -> None:
         self.gateway = gateway
         self.llm = llm
+        self.verifier = verifier
         self.last_run: _Run | None = None
         self.last_investigation: Investigation | None = None
 
@@ -283,6 +284,19 @@ class Investigator:
         self.last_investigation = investigation
         report = build_report(investigation, run.evidence)
         report["narrative"] = summarize(report, self.llm)
+        if self.verifier is not None and not report["narrative"]["source"].startswith("template"):
+            check = verify(report, report["narrative"]["text"], self.verifier)
+            report["narrative"]["verification"] = check
+            if check["status"] == "unavailable":
+                from backend.llm.client import mark_verifier_failed
+
+                mark_verifier_failed()
+            if check["status"] == "fail":
+                report["narrative"] = {
+                    "text": template_summary(report),
+                    "source": "template (verifier rejected the model summary)",
+                    "verification": check,
+                }
         yield run.event("report", **report)
         yield run.event("actions_proposed", actions=propose_actions(investigation))
         yield run.event(

@@ -36,9 +36,10 @@ class OpenAICompatibleClient:
         base_url: str,
         api_key: str,
         model: str,
-        timeout: float = 60.0,
+        timeout: float = 90.0,
         extra_headers: dict[str, str] | None = None,
         provider: str = "nvidia",
+        extra_body: dict | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
@@ -46,9 +47,10 @@ class OpenAICompatibleClient:
         self.timeout = timeout
         self.extra_headers = extra_headers or {}
         self.provider = provider
+        self.extra_body = extra_body or {}
         self.calls: list[dict] = []  # trace: latency and token counts per call
 
-    def complete(self, system: str, user: str, *, max_tokens: int = 600) -> str:
+    def complete(self, system: str, user: str, *, max_tokens: int = 400) -> str:
         body = {
             "model": self.model,
             "messages": [
@@ -57,6 +59,7 @@ class OpenAICompatibleClient:
             ],
             "temperature": 0.1,
             "max_tokens": max_tokens,
+            **self.extra_body,
         }
         started = time.perf_counter()
         try:
@@ -111,7 +114,14 @@ def build_llm(provider: str | None = None) -> OpenAICompatibleClient | None:
     model = os.environ.get("NEMOTRON_MODEL", "")
     if not (key and base and model):
         return None
-    return OpenAICompatibleClient(base_url=base, api_key=key, model=model)
+    # Nemotron 3 models think by default and the reasoning leaks into `content` until the
+    # token limit. Found by testing 27 Oct 2026: this switch returns the answer directly.
+    return OpenAICompatibleClient(
+        base_url=base,
+        api_key=key,
+        model=model,
+        extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+    )
 
 
 def list_models(client: OpenAICompatibleClient) -> list[str]:
@@ -124,3 +134,27 @@ def list_models(client: OpenAICompatibleClient) -> list[str]:
     if response.status_code >= 400:
         raise LLMError(f"Model list HTTP {response.status_code}: {response.text[:200]}")
     return sorted(str(item.get("id", "")) for item in response.json().get("data", []))
+
+
+_VERIFIER_FAILED = False
+
+
+def build_verifier() -> OpenAICompatibleClient | None:
+    """Meterless Nightshift as an independent second model that checks the summary.
+
+    Returns None when the summary model is itself Meterless, when Meterless is not
+    configured, or after one failed call this process (so a missing lane cannot slow
+    every investigation).
+    """
+    load_dotenv()
+    if os.environ.get("LLM_PROVIDER", "nvidia").lower() == "meterless" or _VERIFIER_FAILED:
+        return None
+    client = build_llm("meterless")
+    if client is not None:
+        client.timeout = float(os.environ.get("METERLESS_TIMEOUT", "25"))
+    return client
+
+
+def mark_verifier_failed() -> None:
+    global _VERIFIER_FAILED
+    _VERIFIER_FAILED = True

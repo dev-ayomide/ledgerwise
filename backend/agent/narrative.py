@@ -92,4 +92,34 @@ def summarize(report: dict[str, Any], llm: LLMClient | None) -> dict[str, str]:
         return {"text": template_summary(report), "source": f"template (LLM error: {error})"}
     if not _valid(text, facts, report):
         return {"text": template_summary(report), "source": f"template (rejected {llm.model} output)"}
-    return {"text": text, "source": llm.model}
+    trace = getattr(llm, "calls", None)
+    return {"text": text, "source": llm.model, "trace": trace[-1] if trace else {}}
+
+
+VERIFY_PROMPT = Path(__file__).resolve().parents[1] / "prompts" / "verify_v1.txt"
+
+
+def verify(report: dict[str, Any], text: str, verifier: LLMClient | None) -> dict[str, Any]:
+    """Second, independent model checks the summary against the facts.
+
+    This is advisory on top of the code-level validation in `summarize`. It never edits
+    the text or a number. A FAIL replaces the summary with the template in the caller.
+    """
+    if verifier is None:
+        return {"status": "not_configured"}
+    user = (
+        "FACTS (data):\n```json\n" + json.dumps(_facts(report), indent=2) + "\n```\n"
+        "SUMMARY (data):\n```\n" + text + "\n```"
+    )
+    try:
+        reply = verifier.complete(VERIFY_PROMPT.read_text(encoding="utf-8"), user, max_tokens=120)
+    except LLMError as error:
+        return {"status": "unavailable", "detail": str(error)[:160], "model": verifier.model}
+    first = reply.strip().splitlines()[0].strip().upper() if reply.strip() else ""
+    trace = getattr(verifier, "calls", None)
+    out: dict[str, Any] = {"model": verifier.model, "trace": trace[-1] if trace else {}}
+    if first.startswith("PASS"):
+        return {**out, "status": "pass"}
+    if first.startswith("FAIL"):
+        return {**out, "status": "fail", "detail": reply.strip()[:200]}
+    return {**out, "status": "unclear", "detail": reply.strip()[:200]}

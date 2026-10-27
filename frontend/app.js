@@ -251,7 +251,8 @@ function renderReport() {
       h("div", { class: "panel" }, h("div", { class: "muted" }, "Unexplained remainder"), h("div", { class: "big", style: r.unexplained_kobo ? "color:var(--bad)" : "" }, ngn(r.unexplained_kobo)))),
     h("div", { class: "panel", style: "margin-top:14px" }, h("h2", {}, "Gap by cause"), bar, legend),
     h("div", { class: "panel", style: "margin-top:14px" }, h("h2", {}, "Summary"), h("p", {}, r.narrative.text),
-      h("p", { class: "muted" }, "Written by: " + r.narrative.source + ". Amounts come from code, not from the model.")),
+      h("p", { class: "muted" }, "Written by: " + r.narrative.source + ". Amounts come from code, not from the model."),
+      verificationLine(r.narrative.verification)),
     h("div", { class: "panel", style: "margin-top:14px" }, h("h2", {}, "Root causes, largest first"),
       r.causes.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Cause", "Amount", "Confidence", "Why we believe it", "Evidence"].map((t) => h("th", {}, t)))),
         h("tbody", {}, r.causes.map((c) => h("tr", {},
@@ -269,6 +270,12 @@ function renderReport() {
       " ", h("button", { class: "btn secondary", onclick: () => state.investigationId && replay(state.investigationId) }, "Replay investigation")),
     h("p", { class: "muted" }, (state.finished ? state.finished.query_count + " queries · " + state.finished.duration_ms + " ms · engine " + state.finished.engine : "")),
   );
+}
+
+function verificationLine(v) {
+  if (!v || v.status === "not_configured") return "";
+  const label = { pass: "passed", fail: "failed, template used instead", unavailable: "unavailable (" + (v.detail || "no answer") + ")", unclear: "unclear" }[v.status] || v.status;
+  return h("p", { class: "muted" }, "Independent check by Meterless (" + (v.model || "") + "): " + label + (v.trace && v.trace.latency_ms ? " · " + v.trace.latency_ms + " ms" : ""));
 }
 
 function actionCard(a) {

@@ -24,7 +24,7 @@ from backend.agent import queries
 from backend.agent.events import EVENT_TYPES, Event
 from backend.agent.investigator import Investigator
 from backend.agent.narrative import fmt_ngn
-from backend.llm.client import build_llm
+from backend.llm.client import build_llm, build_verifier
 from backend.settings import ROOT, load_dotenv
 
 load_dotenv()
@@ -81,6 +81,7 @@ def config() -> dict[str, Any]:
     return {
         "gateway": _engine_name(),
         "llm": llm.model if llm else None,
+        "verifier": build_verifier() is not None,
         "event_types": list(EVENT_TYPES),
     }
 
@@ -166,7 +167,7 @@ def _run(request: InvestigateRequest) -> Iterator[str]:
     events: list[Event] = []
     try:
         gateway = get_gateway()
-        investigator = Investigator(gateway, llm=build_llm())
+        investigator = Investigator(gateway, llm=build_llm(), verifier=build_verifier())
         with _gateway_lock if _engine_name() == "local" else _NullLock():
             for event in investigator.stream(request.question, request.business_date):
                 if event.type == "investigation_started":

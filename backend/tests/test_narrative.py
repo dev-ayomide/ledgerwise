@@ -54,3 +54,36 @@ def test_good_llm_output_is_kept() -> None:
     text = "A retried webhook created a duplicate credit of NGN 250,000.00 [E2, E3]."
     out = summarize(REPORT, _FakeLLM(text))
     assert out["source"] == "fake-model" and out["text"] == text
+
+
+def test_verifier_pass_fail_and_unavailable() -> None:
+    from backend.agent.narrative import verify
+    from backend.llm.client import LLMError
+
+    class V:
+        model = "meterless/auto"
+
+        def __init__(self, reply=None, error=False):
+            self.reply, self.error = reply, error
+
+        def complete(self, system, user, *, max_tokens=600):
+            if self.error:
+                raise LLMError("no lane")
+            return self.reply
+
+    assert verify(REPORT, "x", None)["status"] == "not_configured"
+    assert verify(REPORT, "x", V("PASS"))["status"] == "pass"
+    fail = verify(REPORT, "x", V("FAIL\nwrong amount"))
+    assert fail["status"] == "fail" and "wrong amount" in fail["detail"]
+    assert verify(REPORT, "x", V("maybe"))["status"] == "unclear"
+    assert verify(REPORT, "x", V(error=True))["status"] == "unavailable"
+
+
+def test_build_llm_turns_thinking_off_for_nvidia(monkeypatch) -> None:
+    import backend.llm.client as client
+
+    monkeypatch.setattr(client, "load_dotenv", lambda: None)
+    monkeypatch.setenv("NVIDIA_API_KEY", "k")
+    monkeypatch.setenv("NVIDIA_BASE_URL", "http://x/v1")
+    monkeypatch.setenv("NEMOTRON_MODEL", "m")
+    assert client.build_llm("nvidia").extra_body == {"chat_template_kwargs": {"enable_thinking": False}}
