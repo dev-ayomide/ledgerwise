@@ -61,7 +61,7 @@ Relay, which saves verified runs as replayable skills, is a Windows app and is n
 
 ## How Cursor is used
 
-See [docs/BUILT_WITH_CURSOR.md](docs/BUILT_WITH_CURSOR.md).
+Cursor's agent worked on the project from 22 Oct (data generator, SQL guard, first Zetaris client, local Zetaris setup); screenshots and an honest split of what was built where are in [docs/BUILT_WITH_CURSOR.md](docs/BUILT_WITH_CURSOR.md).
 
 ## Submission materials
 

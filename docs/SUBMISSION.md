@@ -28,7 +28,7 @@ Meterless Nightshift runs locally and exposes an OpenAI-compatible endpoint. Aft
 
 ## How Cursor was used
 
-Development started in Cursor on 22 Oct 2026 (rules reading, the data generator, the SQL guard, the first Zetaris client). The 27 Oct work was done in a Claude Code session. See `docs/BUILT_WITH_CURSOR.md`.
+Cursor's agent worked on the project from 22 Oct 2026: reading the rules, the seeded data generator, the SQL guard, the first Zetaris client, and standing up the local Zetaris platform. Screenshots are in `docs/cursor/`, with the rest of the account in `docs/BUILT_WITH_CURSOR.md`. The 27 Oct work (falsification, streaming agent, app and UI, eval, Nemotron and Meterless integration, video and deck) was done in a separate Claude Code session, and we say so rather than credit it to Cursor.
 
 ## What is distinctive
 
