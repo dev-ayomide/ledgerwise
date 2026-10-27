@@ -1,0 +1,10 @@
+{
+ "s1": "Payment teams lose hours when the processor, the ledger, the bank file, and support tickets disagree. Money is missing, and nobody can say why. This is Ledgerwise: an investigator that explains why, with proof.",
+ "s2": "Here is the settlement dashboard, queried live through Zetaris federated SQL. The twenty first of October is short by four point two million naira. I ask the question, and start the investigation.",
+ "s3": "The first query joins four sources in a single statement: the processor database, the webhook log, support tickets, and the bank's Parquet files. That is Zetaris. No copying, no ETL. Watch the sources light up. The agent plans its checks, runs one query for each, and proposes four hypotheses.",
+ "s4": "Now the part that matters. For every hypothesis, the agent tries to prove itself wrong with a second query. Is the duplicate credit real? It checks the webhook log for a retry sequence, attempt one, then attempt two. It survives. Every claim is clickable. Here is the exact query, and the exact rows behind it.",
+ "s5": "The arithmetic is done in code, not by a model. Four point two million explained, zero unexplained. The report ranks causes by amount, with confidence derived from the evidence. NVIDIA Nemotron Ultra writes the plain language summary, and a second model, through Meterless Nightshift, checks it against the facts. Here is the receipt.",
+ "s6": "The agent only reads. It proposes actions. When I approve one, it creates a draft. Nothing is sent, and nothing changes in any system.",
+ "s7": "We measured it. Twenty one scenarios, including red herrings and cases that must stay unexplained. Two thousand one hundred out of two thousand one hundred, on live Zetaris. But the first run on the new scenarios scored nineteen ninety five. A falsifier bug that we found, fixed, and logged. The detectors are rules, so this shows the rules match our injected faults, not real world data.",
+ "s8": "Ledgerwise. Read only, evidence for every claim, humans approve. Built on Zetaris, Nemotron, and Meterless, for any payments team, starting with African fintech."
+}
