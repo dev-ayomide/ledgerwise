@@ -300,6 +300,20 @@ def export(investigation_id: str) -> PlainTextResponse:
     return PlainTextResponse("\n".join(lines), media_type="text/markdown")
 
 
+@app.get("/api/eval")
+def eval_results() -> dict[str, Any]:
+    """Measured eval results exactly as written by backend/eval.py."""
+    out = ROOT / "eval" / "results"
+    latest = json.loads((out / "latest.json").read_text(encoding="utf-8"))
+    first = out / "run1_21_scenarios_before_fix.json"
+    return {"latest": latest, "first_run": json.loads(first.read_text(encoding="utf-8")) if first.is_file() else None}
+
+
+@app.get("/eval")
+def eval_page() -> FileResponse:
+    return FileResponse(FRONTEND / "eval.html")
+
+
 @app.get("/")
 def index() -> FileResponse:
     return FileResponse(FRONTEND / "index.html")

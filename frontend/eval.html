@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ledgerwise eval</title><link rel="stylesheet" href="/static/style.css"></head>
+<body>
+<header class="top"><div class="brand"><span class="logo" aria-hidden="true">L</span> Ledgerwise <span class="tag">Measured evaluation</span></div><a class="btn secondary" href="/">Back to app</a></header>
+<main id="root"><p class="muted">Loading…</p></main>
+<script>
+"use strict";
+function h(t,a,...k){const e=document.createElement(t);for(const[x,v]of Object.entries(a||{})){if(x==="class")e.className=v;else e.setAttribute(x,v)}for(const c of k.flat())if(c!=null)e.append(c.nodeType?c:document.createTextNode(String(c)));return e}
+fetch("/api/eval").then(r=>r.json()).then(({latest,first_run})=>{
+  const rows=latest.results, held=rows.filter(r=>r.held_out);
+  const pass=(ok)=>ok?"pass":"FAIL";
+  const root=document.getElementById("root");
+  root.replaceChildren(
+    h("h1",{},"Eval on live Zetaris"),
+    h("div",{class:"grid2"},
+      h("div",{class:"panel"},h("div",{class:"muted"},"Score"),h("div",{class:"big"},latest.score+" / "+latest.max_score)),
+      h("div",{class:"panel"},h("div",{class:"muted"},"Scenarios"),h("div",{class:"big"},latest.scenarios),h("div",{class:"muted"},held.length+" held out, never tuned against")),
+      h("div",{class:"panel"},h("div",{class:"muted"},"Engine"),h("div",{class:"big",style:"font-size:22px"},latest.engine),h("div",{class:"muted"},latest.seconds+" s for all scenarios"))),
+    first_run?h("div",{class:"note",style:"margin-top:14px"},
+      h("strong",{},"First run on the 13 new scenarios: "+first_run.score+" / "+first_run.max_score+". "),
+      "Three scenarios failed because the missing-line falsifier matched unrelated bank lines with round amounts. We fixed the logic and logged it. The held-out scenarios passed on that first run."):"",
+    h("div",{class:"panel",style:"margin-top:14px"},h("table",{},
+      h("thead",{},h("tr",{},["Scenario","Gap","Causes","Amounts","Unexplained","Held out","Score"].map(t=>h("th",{},t)))),
+      h("tbody",{},rows.map(r=>h("tr",{},h("td",{},r.scenario_id),h("td",{},pass(r.gap_correct)),h("td",{},pass(r.causes_found)),h("td",{},pass(r.amounts_correct)),h("td",{},pass(r.unexplained_correct)),h("td",{},r.held_out?"yes":""),h("td",{class:"num"},r.score)))))),
+    h("p",{class:"muted"},"The detectors are deterministic rules and the scenarios come from the same generator. A perfect score shows the rules match the injected faults, not that they generalise to real data."));
+});
+</script></body></html>

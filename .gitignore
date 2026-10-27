@@ -9,3 +9,10 @@ data/generated/
 *.egg-info/
 data/investigations/*.actions.json
 .claude/
+video/frames/
+video/raw/
+video/check/
+video/silent.mp4
+video/node_modules/
+deck/node_modules/
+node_modules/

@@ -63,6 +63,13 @@ Relay, which saves verified runs as replayable skills, is a Windows app and is n
 
 See [docs/BUILT_WITH_CURSOR.md](docs/BUILT_WITH_CURSOR.md).
 
+## Submission materials
+
+- Demo video (2:20, live run, AI voice): [video/ledgerwise-demo.mp4](video/ledgerwise-demo.mp4). Recorded by `video/record.js` driving the running app; narration in `video/narration.json`.
+- Slide deck: [deck/Ledgerwise.pptx](deck/Ledgerwise.pptx).
+- Written explanation of Zetaris, Nemotron, Meterless and Cursor: [docs/SUBMISSION.md](docs/SUBMISSION.md).
+- Measured eval page in the app: `/eval`.
+
 ## Safety
 
 - SQL guard: one SELECT, allowlisted schema-qualified tables, LIMIT capped at 500, file-reading functions denied, no `SELECT *` on the masked table. Tested, including a ticket body that says `DELETE FROM processor.transactions`.
@@ -86,7 +93,7 @@ LEDGERWISE_GATEWAY=zetaris .venv/bin/uvicorn backend.app.main:app --port 8765
 Open http://localhost:8765. Without Zetaris, `LEDGERWISE_GATEWAY=local` runs the DuckDB test double; the UI badge says so. There is no silent fallback.
 
 ```bash
-.venv/bin/pytest                                   # 36 tests
+.venv/bin/pytest                                   # 39 tests
 .venv/bin/python -m backend.eval --gateway zetaris # 21 scenarios, live
 .venv/bin/python -m backend.demo                   # terminal version
 ```

@@ -55,3 +55,10 @@ def test_dashboard_flags_demo_gap(client) -> None:
     rows = client.get("/api/dashboard").json()
     demo = next(r for r in rows if r["business_date"] == "2026-10-21")
     assert demo["gap_kobo"] == 420_000_000
+
+
+def test_eval_endpoint_serves_measured_results(client) -> None:
+    body = client.get("/api/eval").json()
+    assert body["latest"]["scenarios"] == len(body["latest"]["results"])
+    assert body["latest"]["score"] <= body["latest"]["max_score"]
+    assert client.get("/eval").status_code == 200
