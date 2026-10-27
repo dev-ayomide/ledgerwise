@@ -38,7 +38,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .ask{display:flex;gap:10px;margin:16px 0;flex-wrap:wrap}
 .ask input{flex:1;min-width:280px;font:inherit;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
-.sources{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.sources{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;position:sticky;top:0;z-index:2;background:var(--bg);padding:8px 0}
 .src{font-size:13px;padding:4px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);transition:none}
 .src.on{color:var(--accent-ink);border-color:transparent}
 .split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}

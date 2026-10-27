@@ -73,13 +73,14 @@ async function renderDashboard() {
     return;
   }
   const demo = rows.find((r) => r.scenario_id.startsWith("demo-")) || rows[0];
+  rows = [demo, ...rows.filter((r) => r !== demo)];
   const input = h("input", { id: "q", "aria-label": "Question", value: demo.question });
   let date = demo.business_date;
   const go = h("button", { class: "btn", onclick: () => startInvestigation(input.value, date) }, "Investigate");
   const table = h("table", {},
     h("thead", {}, h("tr", {}, ["Value date", "Processor expects", "Bank settled", "Gap", ""].map((t, i) => h("th", { class: i > 0 && i < 4 ? "num" : "" }, t)))),
     h("tbody", {}, rows.map((r) => h("tr", {},
-      h("td", {}, r.business_date),
+      h("td", {}, r.business_date, r === demo ? h("span", { class: "badge ok", style: "margin-left:8px" }, "demo") : ""),
       h("td", { class: "num" }, r.expected),
       h("td", { class: "num" }, r.actual),
       h("td", { class: "num " + (r.gap_kobo !== 0 ? "gap-flag" : "") }, r.gap_kobo !== 0 ? "⚑ " + r.gap : r.gap),

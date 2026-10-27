@@ -38,6 +38,7 @@ app = FastAPI(title="Ledgerwise")
 _gateway: Any = None
 _gateway_lock = threading.Lock()
 _dashboard_cache: list[dict[str, Any]] | None = None
+_dashboard_lock = threading.Lock()
 
 
 def _engine_name() -> str:
@@ -84,34 +85,63 @@ def config() -> dict[str, Any]:
     }
 
 
+def _headline(scenario: dict[str, Any]) -> dict[str, Any]:
+    gateway = get_gateway()
+    sql = queries.headline_gap(scenario["business_date"])
+    if _engine_name() == "local":
+        with _gateway_lock:
+            result = gateway.query(sql)
+    else:
+        result = gateway.query(sql)
+    row = result.rows[0]
+    return {
+        "business_date": scenario["business_date"],
+        "scenario_id": scenario["id"],
+        "question": scenario["question"],
+        "expected_kobo": int(row["expected_kobo"]),
+        "actual_kobo": int(row["actual_kobo"]),
+        "gap_kobo": int(row["gap_kobo"]),
+        "expected": fmt_ngn(int(row["expected_kobo"])),
+        "actual": fmt_ngn(int(row["actual_kobo"])),
+        "gap": fmt_ngn(int(row["gap_kobo"])),
+    }
+
+
+def _build_dashboard() -> list[dict[str, Any]]:
+    from concurrent.futures import ThreadPoolExecutor
+
+    scenarios = _scenarios()
+    workers = 1 if _engine_name() == "local" else 4
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        rows = list(pool.map(_headline, scenarios))
+    rows.sort(key=lambda r: r["business_date"], reverse=True)
+    return rows
+
+
+@app.on_event("startup")
+def _warm_dashboard() -> None:
+    """Fill the cache in the background so the first page load is instant."""
+
+    def work() -> None:
+        global _dashboard_cache
+        try:
+            with _dashboard_lock:
+                if _dashboard_cache is None:
+                    _dashboard_cache = _build_dashboard()
+        except Exception:  # the endpoint retries and reports the real error
+            pass
+
+    threading.Thread(target=work, daemon=True).start()
+
+
 @app.get("/api/dashboard")
 def dashboard() -> list[dict[str, Any]]:
     """Headline numbers for each demo date, from the same gateway the agent uses."""
     global _dashboard_cache
-    if _dashboard_cache is not None:
-        return _dashboard_cache
-    rows: list[dict[str, Any]] = []
-    gateway = get_gateway()
-    for scenario in _scenarios():
-        with _gateway_lock:
-            result = gateway.query(queries.headline_gap(scenario["business_date"]))
-        row = result.rows[0]
-        rows.append(
-            {
-                "business_date": scenario["business_date"],
-                "scenario_id": scenario["id"],
-                "question": scenario["question"],
-                "expected_kobo": int(row["expected_kobo"]),
-                "actual_kobo": int(row["actual_kobo"]),
-                "gap_kobo": int(row["gap_kobo"]),
-                "expected": fmt_ngn(int(row["expected_kobo"])),
-                "actual": fmt_ngn(int(row["actual_kobo"])),
-                "gap": fmt_ngn(int(row["gap_kobo"])),
-            }
-        )
-    rows.sort(key=lambda r: r["business_date"], reverse=True)
-    _dashboard_cache = rows
-    return rows
+    with _dashboard_lock:
+        if _dashboard_cache is None:
+            _dashboard_cache = _build_dashboard()
+    return _dashboard_cache
 
 
 def _sse(event: Event) -> str:
