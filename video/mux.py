@@ -21,7 +21,7 @@ for i, k in enumerate(keys, start=1):
         ms = int(start * 1000)
         filters.append(f"[{i}:a]adelay={ms}|{ms}[a{i}]")
     labels.append(f"[a{i}]")
-filters.append("".join(labels) + f"amix=inputs={len(keys)}:normalize=0,volume=1.6[aout]")
+filters.append("".join(labels) + f"amix=inputs={len(keys)}:normalize=0,volume=1.3,alimiter=limit=0.9[aout]")
 out = HERE / "ledgerwise-demo.mp4"
 cmd += [
     "-filter_complex", ";".join(filters),
