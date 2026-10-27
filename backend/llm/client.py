@@ -78,13 +78,16 @@ class OpenAICompatibleClient:
             text = payload["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError) as error:
             raise LLMError("Unexpected model response shape.") from error
-        self.calls.append(
-            {
-                "model": self.model,
-                "latency_ms": int((time.perf_counter() - started) * 1000),
-                "usage": payload.get("usage", {}),
-            }
-        )
+        trace = {
+            "model": self.model,
+            "latency_ms": int((time.perf_counter() - started) * 1000),
+            "usage": payload.get("usage", {}),
+        }
+        if self.provider == "meterless":
+            # Nightshift reports which lane served the request and a compute receipt.
+            trace["routed_to"] = payload.get("model")
+            trace["receipt_id"] = (payload.get("meterless") or {}).get("receipt_id")
+        self.calls.append(trace)
         return str(text).strip()
 
 
@@ -98,7 +101,7 @@ def build_llm(provider: str | None = None) -> OpenAICompatibleClient | None:
     if provider == "meterless":
         key = os.environ.get("METERLESS_API_KEY", "")
         base = os.environ.get("METERLESS_BASE_URL", "")
-        model = os.environ.get("METERLESS_MODEL", "meterless/auto")
+        model = os.environ.get("METERLESS_MODEL", "meterless/fast")
         if not (key and base):
             return None
         return OpenAICompatibleClient(
@@ -136,46 +139,16 @@ def list_models(client: OpenAICompatibleClient) -> list[str]:
     return sorted(str(item.get("id", "")) for item in response.json().get("data", []))
 
 
-class _NoLane:
-    """Stands in for Meterless when Nightshift reports it has no model to route to."""
-
-    def __init__(self, model: str, reason: str) -> None:
-        self.model = model
-        self.reason = reason
-        self.calls: list[dict] = []
-
-    def complete(self, system: str, user: str, *, max_tokens: int = 400) -> str:
-        raise LLMError(self.reason)
-
-
-def _lane_problem(client: OpenAICompatibleClient) -> str | None:
-    """Ask Nightshift's /health whether any provider key or device model exists."""
-    root = client.base_url.rsplit("/v1", 1)[0]
-    try:
-        health = httpx.get(f"{root}/health", headers={"Authorization": f"Bearer {client.api_key}"}, timeout=5).json()
-    except (httpx.HTTPError, ValueError):
-        return "Nightshift is not reachable"
-    providers = health.get("providers", {})
-    has_key = bool(providers.get("cloud", {}).get("keys"))
-    device = providers.get("device", {})
-    has_model = bool(device.get("cached") or device.get("resident"))
-    if has_key or has_model or providers.get("proxy", {}).get("configured"):
-        return None
-    return "Nightshift has no provider key or local model yet (Setup > Providers)"
-
-
-def build_verifier() -> OpenAICompatibleClient | _NoLane | None:
+def build_verifier() -> OpenAICompatibleClient | None:
     """Meterless Nightshift as an independent second model that checks the summary.
 
-    None when Meterless is not configured or is itself the summary model. A stand-in that
-    reports "unavailable" instantly when Nightshift has no lane, so the demo never stalls.
+    None when Meterless is not configured or is itself the summary model. A failed call
+    is reported as "unavailable" by `verify`; it never changes the summary.
     """
     load_dotenv()
     if os.environ.get("LLM_PROVIDER", "nvidia").lower() == "meterless":
         return None
     client = build_llm("meterless")
-    if client is None:
-        return None
-    client.timeout = float(os.environ.get("METERLESS_TIMEOUT", "60"))
-    problem = _lane_problem(client)
-    return _NoLane(client.model, problem) if problem else client
+    if client is not None:
+        client.timeout = float(os.environ.get("METERLESS_TIMEOUT", "30"))
+    return client

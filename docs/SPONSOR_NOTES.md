@@ -80,7 +80,8 @@ Confirmed by running it, 27 Oct 2026:
 - `GET /v1/models` returns 14 ids and works with our token.
 - `GET /health` (no `/v1`) returns provider status. Ours said: no provider key stored, no device model cached, "add one under Setup > Providers".
 - With no lane, `meterless/local` returns 502 `privacy_floor_blocks_all_routes`, and other modes hang until the client times out. We check `/health` first so the app reports "unavailable" instantly instead of stalling.
-- Not yet confirmed: a successful chat completion through Nightshift.
+- After a provider key was added in Nightshift: `meterless/fast` chat returned 200 in about 3.5 s, routed to `nvidia/nemotron-3.5-bolt-e4b`, with a `meterless.compute_receipt.v1` receipt. `meterless/auto` returned 502 `provider_route_failed` (both candidate lanes `provider_unavailable`). `/health` kept reporting no key even after this worked, so it is not a reliable readiness check and the pre-check was removed.
+- The runtime key can rotate: a later call returned 401 `runtime_token_mismatch` ("copy the key again from Nightshift > Console").
 
 ## Cursor
 

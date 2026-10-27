@@ -275,7 +275,7 @@ function renderReport() {
 function verificationLine(v) {
   if (!v || v.status === "not_configured") return "";
   const label = { pass: "passed", fail: "failed, template used instead", unavailable: "unavailable (" + (v.detail || "no answer") + ")", unclear: "unclear" }[v.status] || v.status;
-  return h("p", { class: "muted" }, "Independent check by Meterless (" + (v.model || "") + "): " + label + (v.trace && v.trace.latency_ms ? " · " + v.trace.latency_ms + " ms" : ""));
+  return h("p", { class: "muted" }, "Independent check by Meterless (" + (v.model || "") + "): " + label + (v.trace && v.trace.latency_ms ? " · " + v.trace.latency_ms + " ms" : "") + (v.trace && v.trace.routed_to ? " · routed to " + v.trace.routed_to : "") + (v.trace && v.trace.receipt_id ? " · receipt " + v.trace.receipt_id : ""));
 }
 
 function actionCard(a) {

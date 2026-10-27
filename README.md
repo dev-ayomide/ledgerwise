@@ -53,7 +53,9 @@ Notes from testing (27 Oct 2026): the model list shows 85 models, but several Ne
 
 Meterless Nightshift runs locally and exposes an OpenAI-compatible endpoint (`http://127.0.0.1:8088/v1`). Ledgerwise uses it as an independent second model: after Nemotron writes the summary and the code-level checks pass, Nightshift is asked to check every sentence against the facts and answer PASS or FAIL. A FAIL replaces the summary with the template. The report shows the result.
 
-Status: the step is built and tested with a fake verifier. It has not run against a real model yet, because Nightshift reports no provider key and no local model ("add one under Setup > Providers"), so every request fails or hangs. The report currently shows "unavailable" with that reason. Relay, which saves verified runs as replayable skills, is a Windows app and is not used. Replay in this project is our own stored event stream, not Meterless.
+Status (27 Oct 2026): tested against live Nightshift with a provider key added. In direct tests, `meterless/fast`, `meterless/deep` and `meterless/fusion` each passed a correct summary and failed two tampered ones (wrong cause, false "unexplained" claim). Nightshift routed the request to an NVIDIA Nemotron model and returned a compute receipt, whose id the report shows. `meterless/auto` failed once because both of its lanes were unavailable, so Ledgerwise uses `meterless/fast`. A full investigation run in the app after those tests got a 401 (`runtime_token_mismatch`): Nightshift had rotated its runtime key, and `.env.local` needs the new one. The report then shows "unavailable" and the summary is unaffected. This line will be updated once a full app run succeeds.
+
+Relay, which saves verified runs as replayable skills, is a Windows app and is not used. Replay in this project is our own stored event stream, not Meterless.
 
 ## How Cursor is used
 
