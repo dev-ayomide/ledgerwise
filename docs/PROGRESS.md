@@ -76,3 +76,17 @@ Blocked:
 
 - Nemotron credentials and model id. Meterless endpoint. Both from the user.
 - GitHub repository (the folder was not a git repo before this session).
+
+
+## 2026-10-27 (night) — Nemotron live, Meterless wired
+
+Done:
+
+- Nemotron Ultra answers through NVIDIA's endpoint; summary validated; trace shown in the report. Tested on four scenarios, all accepted by the validator.
+- Meterless verifier step built, with `/health` pre-check. Not yet run against a real model: Nightshift has no provider key or local model.
+- Tests: 38 pass.
+
+Next:
+
+- User adds a provider key (or downloads a local model) in Nightshift under Setup > Providers, then rerun a Meterless check and update the README status.
+- Video, deck, GitHub push, Cursor evidence.

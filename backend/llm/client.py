@@ -136,25 +136,46 @@ def list_models(client: OpenAICompatibleClient) -> list[str]:
     return sorted(str(item.get("id", "")) for item in response.json().get("data", []))
 
 
-_VERIFIER_FAILED = False
+class _NoLane:
+    """Stands in for Meterless when Nightshift reports it has no model to route to."""
+
+    def __init__(self, model: str, reason: str) -> None:
+        self.model = model
+        self.reason = reason
+        self.calls: list[dict] = []
+
+    def complete(self, system: str, user: str, *, max_tokens: int = 400) -> str:
+        raise LLMError(self.reason)
 
 
-def build_verifier() -> OpenAICompatibleClient | None:
+def _lane_problem(client: OpenAICompatibleClient) -> str | None:
+    """Ask Nightshift's /health whether any provider key or device model exists."""
+    root = client.base_url.rsplit("/v1", 1)[0]
+    try:
+        health = httpx.get(f"{root}/health", headers={"Authorization": f"Bearer {client.api_key}"}, timeout=5).json()
+    except (httpx.HTTPError, ValueError):
+        return "Nightshift is not reachable"
+    providers = health.get("providers", {})
+    has_key = bool(providers.get("cloud", {}).get("keys"))
+    device = providers.get("device", {})
+    has_model = bool(device.get("cached") or device.get("resident"))
+    if has_key or has_model or providers.get("proxy", {}).get("configured"):
+        return None
+    return "Nightshift has no provider key or local model yet (Setup > Providers)"
+
+
+def build_verifier() -> OpenAICompatibleClient | _NoLane | None:
     """Meterless Nightshift as an independent second model that checks the summary.
 
-    Returns None when the summary model is itself Meterless, when Meterless is not
-    configured, or after one failed call this process (so a missing lane cannot slow
-    every investigation).
+    None when Meterless is not configured or is itself the summary model. A stand-in that
+    reports "unavailable" instantly when Nightshift has no lane, so the demo never stalls.
     """
     load_dotenv()
-    if os.environ.get("LLM_PROVIDER", "nvidia").lower() == "meterless" or _VERIFIER_FAILED:
+    if os.environ.get("LLM_PROVIDER", "nvidia").lower() == "meterless":
         return None
     client = build_llm("meterless")
-    if client is not None:
-        client.timeout = float(os.environ.get("METERLESS_TIMEOUT", "25"))
-    return client
-
-
-def mark_verifier_failed() -> None:
-    global _VERIFIER_FAILED
-    _VERIFIER_FAILED = True
+    if client is None:
+        return None
+    client.timeout = float(os.environ.get("METERLESS_TIMEOUT", "60"))
+    problem = _lane_problem(client)
+    return _NoLane(client.model, problem) if problem else client

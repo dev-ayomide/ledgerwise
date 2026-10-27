@@ -59,19 +59,28 @@ Not confirmed:
 
 ## NVIDIA Nemotron
 
-Not confirmed. Do not write a model id until we see it on the endpoint we can actually call. The in-kind prize is specifically "Best use of NVIDIA Nemotron".
+Confirmed by running it, 27 Oct 2026:
+
+- Endpoint `https://integrate.api.nvidia.com/v1` (OpenAI-compatible). Key from build.nvidia.com settings, prefix `nvapi-`. `GET /models` lists 85 models.
+- Callable with our key: `nvidia/nemotron-3-ultra-550b-a55b` (about 2 s), `nvidia/nemotron-3.5-bolt-e4b`, `nvidia/nemotron-3.5-lightning-30b-a3b` (returned empty content). 404 "Function not found for account": `nvidia/nemotron-3-super-120b-a12b`, `nvidia/nemotron-nano-3-30b-a3b`, `nvidia/llama-3.1-nemotron-{ultra-253b-v1,70b-instruct,51b-instruct}`, `nvidia/nemotron-4-340b-instruct`. 503 resource exhausted: `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning`.
+- Chosen: `nvidia/nemotron-3-ultra-550b-a55b`. Default thinking leaks reasoning into `content` and hits the token limit. `chat_template_kwargs: {"enable_thinking": false}` in the request body fixes it (found by testing, not from documentation).
 
 ## Meterless
 
-Sources: https://meterless.ai/ , https://meterless.ai/how-it-works.html , https://meterless.ai/relay.html , https://github.com/Meterless/Meterless
+Sources: https://meterless.ai/ , /how-it-works.html , /engines.html , /relay.html , https://github.com/Meterless/Meterless
 
-Confirmed publicly:
+Confirmed from the public pages:
 
-- Nightshift can expose an OpenAI-compatible base URL on the machine running it. Their example is illustrative (`http://192.168.1.20:8088/v1`, key `rt-local`), not our deployment.
-- Relay turns a verified run into a replayable skill and stops before a consequential action.
-- The open-source repo is a local context stack (Gaia, Relay, Swarms). It is not a hosted API we have called.
+- Nightshift for Mac M1 and later is a free download. It exposes an OpenAI-compatible base URL, default `http://127.0.0.1:8088/v1`. The bearer token is in `<stateDir>/proxy-token`; the placeholder `rt-local` is rejected. Send `meterless-app: <id>` on every request and `meterless-scope: user` on chat. Model ids are routing modes (`meterless/auto|fast|deep|cheap|local|fusion`) plus `webllm/*` entries.
+- Relay is a free Windows 10/11 app (github.com/meterless/relay). Not usable on this Mac. The public page does not explain how verified runs are saved as skills.
+- No hackathon credit or access instructions were found on the Meterless pages or the hackathon page.
 
-Not confirmed: any hackathon credit, installer, or base URL for this team. No client is wired until that exists.
+Confirmed by running it, 27 Oct 2026:
+
+- `GET /v1/models` returns 14 ids and works with our token.
+- `GET /health` (no `/v1`) returns provider status. Ours said: no provider key stored, no device model cached, "add one under Setup > Providers".
+- With no lane, `meterless/local` returns 502 `privacy_floor_blocks_all_routes`, and other modes hang until the client times out. We check `/health` first so the app reports "unavailable" instantly instead of stalling.
+- Not yet confirmed: a successful chat completion through Nightshift.
 
 ## Cursor
 

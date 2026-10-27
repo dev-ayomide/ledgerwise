@@ -51,3 +51,7 @@ See `docs/EVAL_LOG.md`, run 1.
 ## 2026-10-27 — Datasets and held-out set
 
 Scenarios grew from 8 to 21 (two-fault, three-fault, two more red herrings, two with an unattributable short payment). New scenarios are appended after the original eight so the first eight stay byte-identical. Cutoff scenarios use odd dates so the next day's bank lines do not leak into another scenario. Five scenarios are marked `held_out` and were not tuned against.
+
+## 2026-10-27 — Nemotron writes the summary only; Meterless verifies it
+
+Nemotron Ultra gets the report facts and writes the summary. Code-level validation (known evidence ids, numbers present in the facts) runs first and is the real gate. Meterless Nightshift is then asked, as an independent model, to check the summary and answer PASS or FAIL; FAIL falls back to the template. This uses Meterless's documented OpenAI-compatible endpoint. It is not Relay and not replayable skills. If Nightshift has no lane the report says "unavailable" and nothing else changes.

@@ -287,10 +287,6 @@ class Investigator:
         if self.verifier is not None and not report["narrative"]["source"].startswith("template"):
             check = verify(report, report["narrative"]["text"], self.verifier)
             report["narrative"]["verification"] = check
-            if check["status"] == "unavailable":
-                from backend.llm.client import mark_verifier_failed
-
-                mark_verifier_failed()
             if check["status"] == "fail":
                 report["narrative"] = {
                     "text": template_summary(report),

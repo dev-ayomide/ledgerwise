@@ -43,11 +43,17 @@ Not used: Zetaris masking policies (account references are masked in the loader 
 
 ## How NVIDIA Nemotron is used
 
-Status: not integrated yet. The code path exists (`backend/llm/client.py`, `backend/agent/narrative.py`): when `NVIDIA_API_KEY`, `NVIDIA_BASE_URL` and `NEMOTRON_MODEL` are set, the model writes the plain-language summary from the structured report, and its output is rejected if it cites an unknown evidence id or contains a number that is not in the facts. Without those variables a deterministic template writes the summary, and the UI labels which one ran. No model id has been confirmed in this repo.
+Model: `nvidia/nemotron-3-ultra-550b-a55b` through NVIDIA's OpenAI-compatible endpoint (`https://integrate.api.nvidia.com/v1`). Nemotron writes the plain-language summary of each finished investigation from the structured report only. The facts it gets already carry the amounts, formatted in code. Its output is rejected, and a template used instead, if it cites an evidence id that does not exist or contains a number that is not in the facts. The report says which one wrote the summary and shows the call's latency and token counts. Typical call: 3 to 6 seconds, 175 completion tokens.
+
+Nemotron does not choose queries, compute amounts or set confidence. Those are code.
+
+Notes from testing (27 Oct 2026): the model list shows 85 models, but several Nemotron ids, including `nvidia/nemotron-3-super-120b-a12b`, return 404 for our key. Nemotron 3 models think by default and the reasoning fills the reply until the token limit, so the client sends `chat_template_kwargs.enable_thinking = false`. `nvidia/nemotron-3.5-bolt-e4b` answered fast but invented evidence ids, which the validator would reject.
 
 ## How Meterless is used
 
-Status: not integrated. No hackathon endpoint or installer path was available to this team, and a local JSON file is not Meterless. See [docs/SPONSOR_NOTES.md](docs/SPONSOR_NOTES.md) for what is publicly documented.
+Meterless Nightshift runs locally and exposes an OpenAI-compatible endpoint (`http://127.0.0.1:8088/v1`). Ledgerwise uses it as an independent second model: after Nemotron writes the summary and the code-level checks pass, Nightshift is asked to check every sentence against the facts and answer PASS or FAIL. A FAIL replaces the summary with the template. The report shows the result.
+
+Status: the step is built and tested with a fake verifier. It has not run against a real model yet, because Nightshift reports no provider key and no local model ("add one under Setup > Providers"), so every request fails or hangs. The report currently shows "unavailable" with that reason. Relay, which saves verified runs as replayable skills, is a Windows app and is not used. Replay in this project is our own stored event stream, not Meterless.
 
 ## How Cursor is used
 
@@ -91,5 +97,5 @@ Open http://localhost:8765. Without Zetaris, `LEDGERWISE_GATEWAY=local` runs the
 - Six causes are covered: duplicate webhook, cutoff/timezone, fee mismatch, partial settlement, stuck pending, header discrepancy. Reversal without ledger entry, rounding, duplicate bank lines, missing-webhook tickets and chargebacks are not implemented.
 - A short payment under 5% of net would be labelled a fee mismatch. Not tested.
 - No public deployment. Zetaris runs locally, so the demo is a local run and the recorded video.
-- Nemotron and Meterless are not integrated (see above).
+- Meterless check is wired but has not yet run against a real model (see above). Nemotron only writes the summary.
 - No authentication. Synthetic data only.
